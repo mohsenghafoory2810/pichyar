@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}ورود / ثبت‌نام | {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<section class="card mx-auto max-w-md space-y-5 p-6" aria-labelledby="login-title">
+  <div>
+    <h1 id="login-title" class="text-2xl font-extrabold">ورود / ثبت‌نام</h1>
+    <p class="mt-2 text-sm leading-7 text-ink-soft">
+      شمارهٔ موبایل خود را وارد کنید تا کد تأیید برایتان پیامک شود. اگر حساب ندارید، خودکار ساخته می‌شود.
+    </p>
+  </div>
+  {% include "accounts/_otp_box.html" %}
+</section>
+{% endblock %}

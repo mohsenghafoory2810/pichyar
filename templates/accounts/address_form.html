@@ -1,0 +1,18 @@
+{% extends "accounts/panel_base.html" %}
+
+{% block title %}{% if address %}ویرایش نشانی{% else %}افزودن نشانی{% endif %} | {{ site_settings.site_name }}{% endblock %}
+
+{% block panel %}
+<h1 class="mb-4 text-2xl font-extrabold">{% if address %}ویرایش نشانی{% else %}افزودن نشانی{% endif %}</h1>
+<form method="post" class="card grid gap-4 p-4 md:grid-cols-2" novalidate>
+  {% csrf_token %}
+  {% for error in form.non_field_errors %}<p class="alert-error md:col-span-2">{{ error }}</p>{% endfor %}
+  {% for field in form %}
+    <div class="{% if field.name == 'address' %}md:col-span-2{% endif %}">{% include "partials/form_field.html" %}</div>
+  {% endfor %}
+  <div class="flex gap-3 md:col-span-2">
+    <button type="submit" class="btn-cta">ذخیره</button>
+    <a href="{% url 'accounts:addresses' %}" class="btn-secondary">انصراف</a>
+  </div>
+</form>
+{% endblock %}

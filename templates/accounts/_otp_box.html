@@ -1,0 +1,27 @@
+{# Mobile → SMS code box (login and guest checkout). Context: see accounts.flows.otp_step + box_id, otp_url, next. #}
+<div id="{{ box_id }}" class="space-y-4">
+  {% if notice %}<p class="alert-success" role="status">{{ notice }}</p>{% endif %}
+  {% if error %}<p class="alert-error" role="alert">{{ error }}</p>{% endif %}
+
+  <form method="post" action="{{ otp_url }}" hx-post="{{ otp_url }}" hx-target="#{{ box_id }}" hx-swap="outerHTML" class="space-y-4">
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    {% if step == "code" %}
+      <p class="text-sm leading-7">
+        کد ۵ رقمی به شمارهٔ <bdi dir="ltr" class="font-bold">{{ pending_mobile|fa_digits }}</bdi> پیامک شد. این کد ۲ دقیقه اعتبار دارد.
+      </p>
+      {% include "partials/form_field.html" with field=code_form.code %}
+      <button type="submit" name="action" value="verify" class="btn-cta w-full">تأیید کد</button>
+      <div class="flex items-center justify-between gap-3 text-sm">
+        <button type="submit" name="action" value="change" formnovalidate class="link">تغییر شماره</button>
+        <button type="submit" name="action" value="resend" formnovalidate data-countdown="{{ resend_wait }}"
+                class="link disabled:text-ink-soft disabled:no-underline"{% if resend_wait %} disabled{% endif %}>
+          ارسال دوبارهٔ کد<span data-countdown-label>{% if resend_wait %} ({{ resend_wait|fa_digits }} ثانیه){% endif %}</span>
+        </button>
+      </div>
+    {% else %}
+      {% include "partials/form_field.html" with field=mobile_form.mobile %}
+      <button type="submit" name="action" value="send" class="btn-cta w-full">دریافت کد تأیید</button>
+    {% endif %}
+  </form>
+</div>

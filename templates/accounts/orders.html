@@ -1,0 +1,30 @@
+{% extends "accounts/panel_base.html" %}
+
+{% block title %}سفارش‌های من | {{ site_settings.site_name }}{% endblock %}
+
+{% block panel %}
+<h1 class="mb-4 text-2xl font-extrabold">سفارش‌های من</h1>
+{% if orders %}
+<ul class="space-y-3">
+  {% for order in orders %}
+  <li>
+    <a href="{% url 'accounts:order_detail' order.number %}" class="card flex flex-wrap items-center justify-between gap-3 p-4 hover:border-ink/30">
+      <div>
+        <p class="font-bold">سفارش <bdi dir="ltr">{{ order.number|fa_digits }}</bdi></p>
+        <p class="mt-1 text-sm text-ink-soft">{{ order.created_at|jdate:"%d %B %Y" }} · {{ order.items.all|length|fa_digits }} قلم</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="font-extrabold">{{ order.total|toman }}</span>
+        {% include "orders/_status_badge.html" %}
+      </div>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="card px-6 py-10 text-center">
+  <p>هنوز سفارشی ثبت نکرده‌اید.</p>
+  <a href="{% url 'core:home' %}" class="btn-secondary mt-4">مشاهدهٔ محصولات</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "accounts/panel_base.html" %}
+
+{% block title %}نشانی‌های من | {{ site_settings.site_name }}{% endblock %}
+
+{% block panel %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-2xl font-extrabold">نشانی‌های من</h1>
+  {% if can_add %}<a href="{% url 'accounts:address_add' %}" class="btn-cta">افزودن نشانی</a>{% endif %}
+</div>
+{% if addresses %}
+<ul class="grid gap-3 md:grid-cols-2">
+  {% for a in addresses %}
+  <li class="card flex flex-col gap-2 p-4 text-sm leading-7">
+    <p class="font-bold">{{ a.recipient_name }} — <bdi dir="ltr">{{ a.recipient_mobile|fa_digits }}</bdi></p>
+    <p>{{ a.province }}، {{ a.city }}، {{ a.address }}</p>
+    <p class="text-ink-soft">کد پستی: <bdi dir="ltr">{{ a.postal_code|fa_digits }}</bdi></p>
+    <div class="mt-auto flex gap-3 pt-2">
+      <a href="{% url 'accounts:address_edit' a.pk %}" class="link">ویرایش</a>
+      <form method="post" action="{% url 'accounts:address_delete' a.pk %}" onsubmit="return confirm('این نشانی حذف شود؟')">
+        {% csrf_token %}
+        <button type="submit" class="font-medium text-error underline underline-offset-4">حذف</button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="card px-6 py-10 text-center">
+  <p>هنوز نشانی‌ای ذخیره نکرده‌اید. هنگام خرید هم می‌توانید نشانی را ذخیره کنید.</p>
+</div>
+{% endif %}
+{% endblock %}
