@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}تسویه حساب | {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4 text-2xl font-extrabold">تسویه حساب</h1>
+
+{% if problems %}
+<div class="alert-error mb-4" role="alert">
+  <p class="font-bold">برخی کالاهای سبد قابل سفارش نیستند:</p>
+  <ul class="mt-1 list-disc ps-5">{% for line in problems %}<li>{{ line.product.name }}: {{ line.problem }}</li>{% endfor %}</ul>
+  <a href="{% url 'cart:detail' %}" class="link mt-2 inline-block">اصلاح سبد خرید</a>
+</div>
+{% endif %}
+
+<div class="grid gap-6 md:grid-cols-3">
+  <div class="space-y-6 md:col-span-2">
+    <section class="card space-y-3 p-4" aria-labelledby="step-mobile">
+      <h2 id="step-mobile" class="text-lg font-bold">۱. شمارهٔ موبایل</h2>
+      {% if is_guest %}
+        <p class="text-sm text-ink-soft">برای ثبت سفارش، شمارهٔ موبایل خود را با کد پیامکی تأیید کنید. وضعیت سفارش به همین شماره پیامک می‌شود.</p>
+        {% include "orders/_checkout_mobile.html" %}
+        <p class="text-sm">حساب کاربری دارید؟ <a href="{% url 'accounts:login' %}?next={% url 'orders:checkout' %}" class="link">وارد شوید</a></p>
+      {% else %}
+        <p>با شمارهٔ <bdi dir="ltr" class="font-bold">{{ user.mobile|fa_digits }}</bdi> وارد شده‌اید.</p>
+      {% endif %}
+    </section>
+
+    <form id="checkout-form" method="post" action="{% url 'orders:checkout' %}" class="space-y-6" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="alert-error" role="alert">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+      {% endif %}
+
+      <section class="card space-y-4 p-4" aria-labelledby="step-address">
+        <h2 id="step-address" class="text-lg font-bold">۲. نشانی گیرنده</h2>
+        {% if addresses %}
+        <fieldset class="space-y-2">
+          <legend class="mb-1 text-sm font-medium">انتخاب از نشانی‌های ذخیره‌شده</legend>
+          {% for a in addresses %}
+          <label class="flex cursor-pointer items-start gap-2 rounded-xl border border-line p-3 text-sm has-checked:border-ink">
+            <input type="radio" name="saved_address" value="{{ a.pk }}" class="mt-1"
+                   hx-get="{% url 'orders:checkout_address' a.pk %}" hx-target="#address-fields" hx-swap="innerHTML">
+            <span>{{ a.recipient_name }} — {{ a.province }}، {{ a.city }}، {{ a.address }}</span>
+          </label>
+          {% endfor %}
+        </fieldset>
+        {% endif %}
+        <div id="address-fields">{% include "orders/_address_fields.html" %}</div>
+        {% include "partials/form_field.html" with field=form.note %}
+        {% if form.save_address %}
+        <label class="flex items-center gap-2 text-sm">{{ form.save_address }} {{ form.save_address.label }}</label>
+        {% endif %}
+        <p class="text-xs text-ink-soft">ارسال فقط با پست انجام می‌شود.</p>
+      </section>
+
+      <div id="gift-section">
+        {{ form.expected_total }}
+        {% if form.gift_slots %}
+        <section class="card space-y-3 p-4" aria-labelledby="step-gifts">
+          <h2 id="step-gifts" class="text-lg font-bold">هدیه‌های شما</h2>
+          <p class="text-sm text-ink-soft">
+            این سفارش {{ breakdown.gifts_earned|fa_digits }} هدیه دارد{% if form.gift_slots < breakdown.gifts_earned %}، ولی فعلاً فقط {{ form.gift_slots|fa_digits }} هدیه موجود است{% endif %}.
+            هر هدیه را انتخاب کنید؛ یک کالا را می‌توانید چند بار انتخاب کنید.
+          </p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            {% for field in form.gift_fields %}{% include "partials/form_field.html" with field=field %}{% endfor %}
+          </div>
+        </section>
+        {% endif %}
+      </div>
+
+      <section class="card space-y-3 p-4" aria-labelledby="step-payment">
+        <h2 id="step-payment" class="text-lg font-bold">۳. روش پرداخت</h2>
+        {% if methods %}
+        <fieldset class="space-y-2">
+          <legend class="sr-only">روش پرداخت</legend>
+          {% for radio in form.payment_method %}
+          <label for="{{ radio.id_for_label }}" class="flex cursor-pointer items-center gap-2 rounded-xl border border-line p-3 has-checked:border-navy">
+            {{ radio.tag }} <span>{{ radio.choice_label }}</span>
+          </label>
+          {% endfor %}
+        </fieldset>
+        {% for error in form.payment_method.errors %}<p class="text-sm text-error">{{ error }}</p>{% endfor %}
+        {% else %}
+        <p class="alert-error">در حال حاضر هیچ روش پرداختی فعال نیست.</p>
+        {% endif %}
+      </section>
+
+      <section class="card space-y-4 p-4">
+        <label class="flex items-start gap-2 font-medium">
+          {{ form.age_confirmed }} <span>{{ form.age_confirmed.label }}</span>
+        </label>
+        {% for error in form.age_confirmed.errors %}<p class="text-sm text-error">{{ error }}</p>{% endfor %}
+        <button type="submit" class="btn-pay hidden w-full md:flex"{% if problems or not methods %} disabled{% endif %}>ثبت سفارش و پرداخت <span id="pay-total">{{ breakdown.total|toman }}</span></button>
+      </section>
+    </form>
+  </div>
+
+  <aside id="checkout-summary" class="card h-fit space-y-4 p-4 md:sticky md:top-4" aria-labelledby="checkout-summary-title">
+    <h2 id="checkout-summary-title" class="text-lg font-bold">سفارش شما</h2>
+    <ul class="space-y-2 text-sm">
+      {% for line in lines %}
+      <li class="flex justify-between gap-3">
+        <span>{{ line.product.name }} × {{ line.quantity|fa_digits }}</span>
+        <span class="whitespace-nowrap">{{ line.line_total|toman }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% include "orders/_discount_box.html" %}
+    <div class="border-t border-line pt-3">{% include "orders/_summary.html" with discount_label=pricing.discount_code.code %}</div>
+    {% include "orders/_gift_hint.html" %}
+    <a href="{% url 'cart:detail' %}" class="link text-sm">ویرایش سبد خرید</a>
+  </aside>
+</div>
+{% endblock %}
+
+{% block bottom_bar %}
+<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur md:hidden">
+  <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
+    <div class="leading-5">
+      <span class="block text-xs text-ink-soft">مبلغ قابل پرداخت</span>
+      <span class="font-extrabold" id="bottom-pay-total">{{ breakdown.total|toman }}</span>
+    </div>
+    <button type="submit" form="checkout-form" class="btn-pay ms-auto flex-1 py-2.5"{% if problems or not methods %} disabled{% endif %}>ثبت سفارش</button>
+  </div>
+</div>
+{% endblock %}

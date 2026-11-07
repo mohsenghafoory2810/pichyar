@@ -1,0 +1,7 @@
+<div id="track-result" class="mt-6" aria-live="polite">
+  {% if order %}
+    {% include "orders/_order_detail.html" %}
+  {% elif not_found %}
+    <p class="alert-error">سفارشی با این شمارهٔ موبایل و شمارهٔ سفارش پیدا نشد.</p>
+  {% endif %}
+</div>

@@ -1,0 +1,73 @@
+{# Order details for the customer. Context: order; tracking=True hides the payment buttons. #}
+<article class="space-y-4" aria-labelledby="order-title">
+  <div class="card flex flex-wrap items-center justify-between gap-3 p-4">
+    <div>
+      <h2 id="order-title" class="text-xl font-extrabold">سفارش <bdi dir="ltr">{{ order.number|fa_digits }}</bdi></h2>
+      <p class="mt-1 text-sm text-ink-soft">ثبت‌شده در {{ order.created_at|jdatetime }}</p>
+    </div>
+    {% include "orders/_status_badge.html" %}
+  </div>
+
+  {% if not tracking %}
+    {% if order.can_pay_online %}
+    <form method="post" action="{% url 'payments:start' order.number %}" class="card flex flex-wrap items-center justify-between gap-3 p-4">
+      {% csrf_token %}
+      <p>{% if order.status == "failed" %}پرداخت این سفارش انجام نشد. می‌توانید دوباره پرداخت کنید.{% else %}این سفارش هنوز پرداخت نشده است.{% endif %}</p>
+      <button type="submit" class="btn-pay">پرداخت {{ order.total|toman }}</button>
+    </form>
+    {% elif order.can_submit_card_transfer %}
+    <div class="card flex flex-wrap items-center justify-between gap-3 p-4">
+      <p>منتظر ثبت اطلاعات کارت به کارت شما هستیم.</p>
+      <a href="{% url 'payments:card' order.number %}" class="btn-pay">ثبت اطلاعات پرداخت</a>
+    </div>
+    {% endif %}
+  {% endif %}
+  {% if order.status == "awaiting_approval" %}
+    <p class="alert-info">اطلاعات کارت به کارت شما دریافت شد و در حال بررسی است.</p>
+  {% endif %}
+
+  {% if order.post_tracking_code %}
+  <div class="card p-4">
+    <p class="text-sm text-ink-soft">کد رهگیری پست</p>
+    <p class="mt-1 text-lg font-bold" dir="ltr">{{ order.post_tracking_code|fa_digits }}</p>
+    <a href="https://tracking.post.ir/" class="link mt-2 inline-block text-sm" target="_blank" rel="noopener">پیگیری مرسوله در سایت شرکت ملی پست</a>
+  </div>
+  {% endif %}
+
+  <div class="card overflow-x-auto p-4">
+    <h3 class="mb-3 font-bold">اقلام سفارش</h3>
+    <table class="w-full min-w-[28rem] text-sm">
+      <thead class="text-ink-soft">
+        <tr class="border-b border-line"><th scope="col" class="py-2 text-start font-medium">کالا</th><th scope="col" class="py-2 font-medium">تعداد</th><th scope="col" class="py-2 font-medium">قیمت واحد</th><th scope="col" class="py-2 text-end font-medium">جمع</th></tr>
+      </thead>
+      <tbody>
+        {% for item in order.items.all %}
+        <tr class="border-b border-line last:border-0">
+          <td class="py-2">{{ item.name }}{% if item.is_gift %} <span class="rounded-full bg-success/15 px-2 text-xs text-success">هدیه</span>{% endif %}</td>
+          <td class="py-2 text-center">{{ item.quantity|fa_digits }}</td>
+          <td class="py-2 text-center">{% if item.is_gift %}رایگان{% else %}{{ item.unit_price|toman }}{% endif %}</td>
+          <td class="py-2 text-end">{% if item.is_gift %}رایگان{% else %}{{ item.line_total|toman }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="mt-4 md:ms-auto md:max-w-sm">{% include "orders/_summary.html" with breakdown=order hide_shipping_rule=True discount_label=order.discount_code_text %}</div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="card p-4 text-sm leading-7">
+      <h3 class="mb-2 font-bold">گیرنده</h3>
+      <p>{{ order.recipient_name }} — <bdi dir="ltr">{{ order.recipient_mobile|fa_digits }}</bdi></p>
+      <p>{{ order.province }}، {{ order.city }}، {{ order.address }}</p>
+      <p>کد پستی: <bdi dir="ltr">{{ order.postal_code|fa_digits }}</bdi></p>
+      {% if order.note %}<p class="mt-2 text-ink-soft">توضیحات: {{ order.note }}</p>{% endif %}
+    </div>
+    <div class="card p-4 text-sm leading-7">
+      <h3 class="mb-2 font-bold">پرداخت و ارسال</h3>
+      <p>روش پرداخت: {{ order.get_payment_method_display }}</p>
+      {% if order.paid_at %}<p>تأیید پرداخت: {{ order.paid_at|jdatetime }}</p>{% endif %}
+      <p>روش ارسال: پست</p>
+      {% if order.shipped_at %}<p>زمان ارسال: {{ order.shipped_at|jdatetime }}</p>{% endif %}
+    </div>
+  </div>
+</article>

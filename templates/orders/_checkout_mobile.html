@@ -1,0 +1,17 @@
+{# Guest mobile verification on the checkout page. Context: mobile_box (see orders.views._mobile_context). #}
+{% with box=mobile_box %}
+{% if box.verified_mobile %}
+<div id="{{ box.box_id }}" class="flex flex-wrap items-center justify-between gap-3">
+  <p class="text-success">
+    <svg aria-hidden="true" class="inline h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>
+    شمارهٔ <bdi dir="ltr" class="font-bold">{{ box.verified_mobile|fa_digits }}</bdi> تأیید شد.
+  </p>
+  <form method="post" action="{{ box.otp_url }}" hx-post="{{ box.otp_url }}" hx-target="#{{ box.box_id }}" hx-swap="outerHTML">
+    {% csrf_token %}
+    <button type="submit" name="action" value="change" class="link text-sm">تغییر شماره</button>
+  </form>
+</div>
+{% else %}
+{% include "accounts/_otp_box.html" with box_id=box.box_id otp_url=box.otp_url step=box.step pending_mobile=box.pending_mobile mobile_form=box.mobile_form code_form=box.code_form notice=box.notice error=box.error resend_wait=box.resend_wait next="" %}
+{% endif %}
+{% endwith %}

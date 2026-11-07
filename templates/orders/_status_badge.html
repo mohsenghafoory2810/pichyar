@@ -1,0 +1,6 @@
+{% with s=order.status %}
+<span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold
+  {% if s == 'paid_processing' or s == 'shipped' or s == 'delivered' %}bg-success/15 text-success
+  {% elif s == 'canceled' or s == 'failed' %}bg-error/10 text-error
+  {% else %}bg-gold/25 text-ink{% endif %}">{{ order.get_status_display }}</span>
+{% endwith %}

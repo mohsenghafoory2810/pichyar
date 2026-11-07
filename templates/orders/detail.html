@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}سفارش {{ order.number|fa_digits }} | {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl">
+  {% include "orders/_order_detail.html" %}
+</div>
+{% endblock %}

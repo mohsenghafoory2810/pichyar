@@ -1,0 +1,33 @@
+{# Totals of a cart/order. Expects `breakdown` (orders.pricing.PriceBreakdown or an Order); optional discount_label (the code). #}
+<dl class="space-y-2 text-sm">
+  <div class="flex justify-between gap-3">
+    <dt class="text-ink-soft">جمع کالاها</dt>
+    <dd>{{ breakdown.items_subtotal|toman }}</dd>
+  </div>
+  {% if breakdown.discount_amount %}
+  <div class="flex justify-between gap-3 text-success">
+    <dt>تخفیف{% if discount_label %} (<bdi dir="ltr">{{ discount_label }}</bdi>){% endif %}</dt>
+    <dd>− {{ breakdown.discount_amount|toman }}</dd>
+  </div>
+  {% endif %}
+  <div class="flex justify-between gap-3">
+    <dt class="text-ink-soft">هزینهٔ ارسال (پست)</dt>
+    <dd data-shipping-fee>{% if breakdown.shipping_fee %}{{ breakdown.shipping_fee|toman }}{% else %}رایگان{% endif %}</dd>
+  </div>
+  {% if breakdown.gifts_earned %}
+  <div class="flex justify-between gap-3 text-success" data-gifts-earned>
+    <dt>هدیه</dt>
+    <dd>{{ breakdown.gifts_earned|fa_digits }} عدد</dd>
+  </div>
+  {% endif %}
+  {% if not hide_shipping_rule %}
+  <p class="text-xs leading-6 text-ink-soft">
+    ارسال فقط با پست انجام می‌شود. هزینهٔ ارسال: {{ site_settings.shipping_step_fee|toman }} به ازای هر
+    {{ site_settings.shipping_step_amount|toman }}{% if site_settings.shipping_rounding == "ceil" %} خرید (یا بخشی از آن){% else %} خرید کامل{% endif %}.
+  </p>
+  {% endif %}
+  <div class="flex justify-between gap-3 border-t border-line pt-3 text-base font-extrabold">
+    <dt>مبلغ قابل پرداخت</dt>
+    <dd data-total>{{ breakdown.total|toman }}</dd>
+  </div>
+</dl>

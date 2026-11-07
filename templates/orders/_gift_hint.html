@@ -1,0 +1,7 @@
+{# "With X Toman more you get a gift". Context: pricing (orders.discounts.CartPricing). #}
+{% with hint=pricing.gift_hint %}{% if hint %}
+<p class="alert-info flex items-start gap-2" data-gift-hint>
+  <svg aria-hidden="true" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 11h16v9H4zM3 7h18v4H3zM12 7v13M12 7c-1.5-3-5-3-5-1s3 1 5 1c2 0 5 1 5-1s-3.5-2-5 1"/></svg>
+  <span>{{ hint.text }}</span>
+</p>
+{% endif %}{% endwith %}

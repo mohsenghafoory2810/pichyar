@@ -1,0 +1,5 @@
+<div class="grid gap-4 md:grid-cols-2">
+  {% for field in form.address_fields %}
+    <div class="{% if field.name == 'address' %}md:col-span-2{% endif %}">{% include "partials/form_field.html" %}</div>
+  {% endfor %}
+</div>

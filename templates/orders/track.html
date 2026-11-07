@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}پیگیری سفارش | {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl">
+  <section class="card mx-auto max-w-md space-y-4 p-6" aria-labelledby="track-title">
+    <h1 id="track-title" class="text-2xl font-extrabold">پیگیری سفارش</h1>
+    <p class="text-sm text-ink-soft">شمارهٔ سفارش در پیامک ثبت سفارش برایتان ارسال شده است.</p>
+    <form method="post" action="{% url 'orders:track' %}" hx-post="{% url 'orders:track' %}" hx-target="#track-result" hx-swap="outerHTML" class="space-y-4" novalidate>
+      {% csrf_token %}
+      {% include "partials/form_field.html" with field=form.mobile %}
+      {% include "partials/form_field.html" with field=form.number %}
+      <button type="submit" class="btn-cta w-full">پیگیری</button>
+    </form>
+  </section>
+  {% include "orders/_track_result.html" %}
+</div>
+{% endblock %}
