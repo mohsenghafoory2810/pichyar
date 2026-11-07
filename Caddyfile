@@ -1,0 +1,35 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	# Caddy core has zstd and gzip only (br needs a plugin). /static/* is served by WhiteNoise,
+	# which sends its pre-compressed .br/.gz files itself (Caddy leaves encoded responses alone)
+	# and gives hashed file names (CompressedManifestStaticFilesStorage) a one-year immutable
+	# Cache-Control, so no extra static caching rule is needed here.
+	encode zstd gzip
+
+	# Largest upload accepted at all (images are limited further by the app).
+	request_body {
+		max_size 20MB
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Referrer-Policy same-origin
+		-Server
+	}
+
+	# Uploaded images are served directly by Caddy.
+	handle_path /media/* {
+		root * /srv/media
+		header Cache-Control "public, max-age=604800"
+		header Content-Security-Policy "default-src 'none'; sandbox"
+		file_server
+	}
+
+	handle {
+		reverse_proxy app:8000
+	}
+}
