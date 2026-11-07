@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}پرداخت کارت به کارت | {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-lg space-y-4">
+  <section class="card space-y-4 p-6" aria-labelledby="card-title">
+    <h1 id="card-title" class="text-2xl font-extrabold">پرداخت کارت به کارت</h1>
+    <p>سفارش <bdi dir="ltr" class="font-bold">{{ order.number|fa_digits }}</bdi> ثبت شد. لطفاً دقیقاً مبلغ زیر را به یکی از کارت‌ها واریز کنید:</p>
+    <p class="rounded-xl bg-navy/10 p-4 text-center text-2xl font-extrabold text-navy">{{ order.total|toman }}</p>
+    <ul class="space-y-3">
+      {% for card in cards %}
+      <li class="rounded-xl border border-line p-4">
+        <p class="text-center text-xl font-bold tracking-wider" dir="ltr">{{ card.card_number_display|fa_digits }}</p>
+        <p class="mt-1 text-center text-sm text-ink-soft">به نام {{ card.holder_name }}{% if card.bank_name %} — {{ card.bank_name }}{% endif %}</p>
+      </li>
+      {% empty %}
+      <li class="alert-error">شماره کارتی ثبت نشده است. با پشتیبانی تماس بگیرید.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <form method="post" enctype="multipart/form-data" class="card space-y-4 p-6" novalidate>
+    {% csrf_token %}
+    <h2 class="text-lg font-bold">ثبت اطلاعات واریز</h2>
+    {% for error in form.non_field_errors %}<p class="alert-error">{{ error }}</p>{% endfor %}
+    {% include "partials/form_field.html" with field=form.tracking_number %}
+    {% include "partials/form_field.html" with field=form.receipt %}
+    <button type="submit" class="btn-pay w-full">ثبت اطلاعات پرداخت</button>
+    <p class="text-xs leading-6 text-ink-soft">پس از بررسی و تأیید پرداخت، سفارش شما آماده و ارسال می‌شود و نتیجه را پیامک می‌کنیم.</p>
+  </form>
+</div>
+{% endblock %}

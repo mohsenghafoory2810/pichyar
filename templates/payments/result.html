@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}نتیجهٔ پرداخت | {{ site_settings.site_name }}{% endblock %}
+{% block extra_head %}{% if payment.status == "verifying" %}<meta http-equiv="refresh" content="5">{% endif %}{% endblock %}
+
+{% block content %}
+<section class="card mx-auto max-w-lg space-y-4 p-6 text-center" aria-labelledby="result-title">
+  {% if payment.status == "succeeded" %}
+    <svg aria-hidden="true" class="mx-auto h-14 w-14 text-success" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m7 12 3.5 3.5L17 9"/></svg>
+    <h1 id="result-title" class="text-2xl font-extrabold text-success">پرداخت موفق</h1>
+    {% if payment.message %}<p class="alert-error">{{ payment.message }}</p>{% else %}<p>سفارش شما ثبت شد و به‌زودی آماده و ارسال می‌شود.</p>{% endif %}
+    <dl class="space-y-2 text-sm">
+      <div class="flex justify-between"><dt class="text-ink-soft">شمارهٔ سفارش</dt><dd dir="ltr" class="font-bold">{{ order.number|fa_digits }}</dd></div>
+      <div class="flex justify-between"><dt class="text-ink-soft">کد پیگیری بانکی</dt><dd dir="ltr" class="font-bold">{{ payment.ref_id|fa_digits }}</dd></div>
+      <div class="flex justify-between"><dt class="text-ink-soft">مبلغ</dt><dd>{{ payment.amount|toman }}</dd></div>
+    </dl>
+  {% elif payment.status == "verifying" %}
+    <h1 id="result-title" class="text-2xl font-extrabold">در حال بررسی پرداخت…</h1>
+    <p>لطفاً چند لحظه صبر کنید. این صفحه خودکار تازه می‌شود.</p>
+  {% elif payment.status == "pending" %}
+    <h1 id="result-title" class="text-2xl font-extrabold">پرداخت هنوز انجام نشده است</h1>
+  {% else %}
+    <svg aria-hidden="true" class="mx-auto h-14 w-14 text-error" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 9 6 6m0-6-6 6"/></svg>
+    <h1 id="result-title" class="text-2xl font-extrabold text-error">پرداخت ناموفق</h1>
+    <p>{{ payment.message|default:"پرداخت انجام نشد." }}</p>
+    <p class="text-sm text-ink-soft">اگر مبلغی از حساب شما کم شده باشد، حداکثر تا ۷۲ ساعت خودکار برمی‌گردد.</p>
+  {% endif %}
+
+  {% if can_view_order %}
+    <div class="flex flex-col gap-3 pt-2">
+      {% if order.can_pay_online and payment.status != "verifying" %}
+      <form method="post" action="{% url 'payments:start' order.number %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-pay w-full">پرداخت دوباره {{ order.total|toman }}</button>
+      </form>
+      {% endif %}
+      <a href="{{ order.get_absolute_url }}" class="btn-secondary">مشاهدهٔ سفارش</a>
+    </div>
+  {% else %}
+    <a href="{% url 'orders:track' %}" class="btn-secondary">پیگیری سفارش</a>
+  {% endif %}
+</section>
+{% endblock %}
