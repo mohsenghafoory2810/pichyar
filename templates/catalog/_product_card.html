@@ -1,0 +1,21 @@
+{# Product card. Expects `product` with images prefetched. #}
+{% load seo %}
+{% with img=product.main_image %}
+<article class="card group flex flex-col overflow-hidden">
+  <a href="{{ product.get_absolute_url }}" class="flex flex-1 flex-col">
+    <div class="relative aspect-square overflow-hidden bg-line/40">
+      <img src="{% if img %}{{ img.image.url }}{% else %}{% static 'img/product-placeholder.svg' %}{% endif %}"{% if img %}{% with set=img|srcset %}{% if set %}
+           srcset="{{ set }}" sizes="(min-width: 1024px) 270px, (min-width: 768px) 33vw, 50vw"{% endif %}{% endwith %}{% endif %}
+           alt="{% if img %}{{ img.alt }}{% else %}{{ product.name }}{% endif %}" width="600" height="600" loading="lazy" decoding="async"
+           class="h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105{% if not product.in_stock %} opacity-60 grayscale{% endif %}">
+      {% include "catalog/_stock_badge.html" with class="absolute top-2 right-2" %}
+    </div>
+    <div class="flex flex-1 flex-col p-3">
+      <h3 class="line-clamp-2 font-bold leading-6">{{ product.name }}</h3>
+      <p class="mt-1 text-xs text-ink-soft">{{ product.unit }}</p>
+      {% include "reviews/_card_rating.html" %}
+      <p class="mt-auto pt-2 text-lg font-extrabold{% if not product.in_stock %} text-ink-soft{% endif %}">{{ product.price|toman }}</p>
+    </div>
+  </a>
+</article>
+{% endwith %}

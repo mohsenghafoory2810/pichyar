@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/breadcrumbs.html" %}
+
+<h1 class="text-2xl font-extrabold">
+  {% if category %}{{ category.name }}{% elif query %}نتیجهٔ جستجوی «{{ query }}»{% else %}همهٔ محصولات{% endif %}
+</h1>
+
+{% if category.intro and page_obj.number == 1 %}
+<div class="rich-text mt-4">{{ category.intro|safe }}</div>
+{% endif %}
+
+{% if subcategories %}
+<nav aria-label="زیردسته‌ها" class="-mx-4 mt-4 overflow-x-auto px-4 [scrollbar-width:none]">
+  <ul class="flex gap-2 whitespace-nowrap">
+    <li><a href="{{ top_category.get_absolute_url }}" class="inline-block rounded-full border px-4 py-1.5 text-sm {% if category == top_category %}border-ink bg-ink text-cream{% else %}border-line bg-surface hover:bg-ink/5{% endif %}">همه</a></li>
+    {% for sub in subcategories %}
+      <li><a href="{{ sub.get_absolute_url }}" class="inline-block rounded-full border px-4 py-1.5 text-sm {% if sub == category %}border-ink bg-ink text-cream{% else %}border-line bg-surface hover:bg-ink/5{% endif %}">{{ sub.name }}</a></li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}
+
+<form method="get" class="mt-5 flex flex-wrap items-end gap-3" role="search"
+      hx-get="{{ request.path }}" hx-target="#product-results" hx-swap="outerHTML" hx-push-url="true"
+      hx-trigger="submit, change from:#sort, input changed delay:400ms from:#list-q">
+  <div class="min-w-0 flex-1">
+    <label for="list-q" class="mb-1 block text-sm text-ink-soft">جستجو{% if category %} در {{ category.name }}{% endif %}</label>
+    <input id="list-q" name="q" type="search" value="{{ query }}" placeholder="نام محصول…"
+           class="w-full rounded-xl border border-line bg-surface px-4 py-2.5">
+  </div>
+  <div>
+    <label for="sort" class="mb-1 block text-sm text-ink-soft">مرتب‌سازی</label>
+    <select id="sort" name="sort" class="rounded-xl border border-line bg-surface px-3 py-2.5">
+      {% for key, label in sorts %}<option value="{{ key }}"{% if key == sort %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn-secondary py-2.5">اعمال</button>
+</form>
+
+<div class="mt-5">
+  <h2 class="sr-only">محصولات</h2>
+  {% include "catalog/_product_results.html" %}
+</div>
+
+{% if faqs %}
+<section class="mt-12" aria-labelledby="category-faq-title">
+  <h2 id="category-faq-title" class="mb-4 text-xl font-extrabold">پرسش‌های متداول</h2>
+  <div class="space-y-2">
+    {% for faq in faqs %}
+      <details class="card group p-4"{% if forloop.first %} open{% endif %}>
+        <summary class="cursor-pointer font-bold leading-7">{{ faq.question }}</summary>
+        <div class="mt-3 leading-8 text-ink">{{ faq.answer|linebreaks }}</div>
+      </details>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

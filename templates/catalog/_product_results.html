@@ -1,0 +1,39 @@
+{# Product grid + pagination. Swapped in by HTMX when search/sort changes. Page 1 links carry no ?page= (canonical form). #}
+{% load seo %}
+<div id="product-results">
+  {% if products %}
+    <p class="mb-3 text-sm text-ink-soft" aria-live="polite">{{ page_obj.paginator.count|fa_number }} محصول</p>
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+      {% for product in products %}{% include "catalog/_product_card.html" %}{% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="صفحه‌بندی">
+      {% if page_obj.has_previous %}
+        <a href="{% page_url page_obj.previous_page_number %}" class="btn-secondary px-4 py-2" rel="prev">قبلی</a>
+      {% endif %}
+      {% for n in page_obj.paginator.get_elided_page_range %}
+        {% if n == page_obj.number %}
+          <span class="rounded-xl bg-ink px-4 py-2 font-bold text-cream" aria-current="page">{{ n|fa_digits }}</span>
+        {% elif n == page_obj.paginator.ELLIPSIS %}
+          <span class="px-2 text-ink-soft">…</span>
+        {% else %}
+          <a href="{% page_url n %}" class="rounded-xl border border-line bg-surface px-4 py-2 hover:bg-ink/5">{{ n|fa_digits }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a href="{% page_url page_obj.next_page_number %}" class="btn-secondary px-4 py-2" rel="next">بعدی</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+  {% else %}
+    <div class="card px-6 py-12 text-center">
+      {% if query %}
+        <p class="text-lg font-bold">محصولی با «{{ query }}» پیدا نشد.</p>
+        <p class="mt-2 text-ink-soft">عبارت دیگری را امتحان کنید.</p>
+      {% else %}
+        <p class="text-lg font-bold">فعلاً محصولی در این بخش نیست.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>

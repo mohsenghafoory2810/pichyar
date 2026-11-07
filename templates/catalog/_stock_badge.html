@@ -1,0 +1,5 @@
+{% if product.in_stock %}
+  <span class="{{ class }} rounded-full bg-success px-2.5 py-0.5 text-xs font-bold text-white">موجود</span>
+{% else %}
+  <span class="{{ class }} rounded-full bg-error px-2.5 py-0.5 text-xs font-bold text-white">ناموجود</span>
+{% endif %}
