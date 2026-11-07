@@ -1,0 +1,5 @@
+<p id="cart-feedback" class="text-center text-sm {% if ok %}text-success{% else %}text-error{% endif %}" role="status">
+  {{ message }}
+  {% if ok %}<a href="{% url 'cart:detail' %}" class="link">مشاهدهٔ سبد خرید</a>{% endif %}
+</p>
+{% include "cart/_oob.html" %}

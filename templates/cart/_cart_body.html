@@ -1,0 +1,68 @@
+<div id="cart-body">
+  {% if cart_error %}<p class="alert-error mb-4" role="alert">{{ cart_error }}</p>{% endif %}
+  {% if lines %}
+  <div class="grid gap-6 md:grid-cols-3">
+    <ul class="space-y-3 md:col-span-2" aria-label="کالاهای سبد">
+      {% for line in lines %}
+      {% with product=line.product img=line.product.main_image %}
+      <li class="card flex gap-3 p-3">
+        <a href="{{ product.get_absolute_url }}" class="shrink-0">
+          <img src="{% if img %}{{ img.image.url }}{% else %}{% static 'img/product-placeholder.svg' %}{% endif %}"
+               alt="" width="88" height="88" loading="lazy" class="h-22 w-22 rounded-xl object-cover{% if line.problem %} opacity-60 grayscale{% endif %}">
+        </a>
+        <div class="flex min-w-0 flex-1 flex-col gap-2">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <a href="{{ product.get_absolute_url }}" class="font-bold leading-6 hover:underline">{{ product.name }}</a>
+              <p class="text-xs text-ink-soft">{{ product.unit }} · هر عدد {{ line.unit_price|toman }}</p>
+            </div>
+            <form method="post" action="{% url 'cart:remove' product.pk %}"
+                  hx-post="{% url 'cart:remove' product.pk %}" hx-target="#cart-body" hx-swap="outerHTML">
+              {% csrf_token %}
+              <button type="submit" class="rounded-lg p-1.5 text-ink-soft hover:bg-error/10 hover:text-error" aria-label="حذف {{ product.name }} از سبد">
+                <svg aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+              </button>
+            </form>
+          </div>
+          {% if line.problem %}<p class="text-sm text-error">{{ line.problem }}</p>{% endif %}
+          <div class="mt-auto flex flex-wrap items-center justify-between gap-2">
+            <form method="post" action="{% url 'cart:update' product.pk %}"
+                  hx-post="{% url 'cart:update' product.pk %}" hx-target="#cart-body" hx-swap="outerHTML" hx-trigger="submit, change"
+                  class="flex items-center overflow-hidden rounded-xl border border-line">
+              {% csrf_token %}
+              {# Default button for Enter in the input (submits the typed quantity, without a delta). #}
+              <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">به‌روزرسانی</button>
+              <button type="submit" name="delta" value="1" class="px-3 py-1.5 text-lg disabled:opacity-40" aria-label="افزایش تعداد {{ product.name }}"{% if line.quantity >= line.max_quantity %} disabled{% endif %}>+</button>
+              <label for="qty-{{ product.pk }}" class="sr-only">تعداد {{ product.name }}</label>
+              <input id="qty-{{ product.pk }}" name="quantity" type="number" inputmode="numeric" value="{{ line.quantity }}" min="0" max="{{ line.max_quantity }}"
+                     class="w-12 border-x border-line bg-surface py-1.5 text-center [appearance:textfield]">
+              <button type="submit" name="delta" value="-1" class="px-3 py-1.5 text-lg" aria-label="کاهش تعداد {{ product.name }}">−</button>
+            </form>
+            <p class="font-extrabold">{{ line.line_total|toman }}</p>
+          </div>
+        </div>
+      </li>
+      {% endwith %}
+      {% endfor %}
+    </ul>
+    <aside class="card h-fit space-y-4 p-4" aria-labelledby="cart-summary-title">
+      <h2 id="cart-summary-title" class="text-lg font-bold">خلاصهٔ سفارش</h2>
+      {% include "orders/_discount_box.html" %}
+      {% include "orders/_summary.html" with discount_label=pricing.discount_code.code %}
+      {% include "orders/_gift_hint.html" %}
+      {% if cart.problems %}
+        <p class="alert-error">پیش از ادامه، مشکل کالاهای مشخص‌شده را برطرف کنید.</p>
+        <button type="button" class="btn-cta w-full" disabled>تسویه حساب</button>
+      {% else %}
+        <a href="{% url 'orders:checkout' %}" class="btn-cta w-full">تسویه حساب</a>
+      {% endif %}
+    </aside>
+  </div>
+  {% else %}
+  <div class="card mx-auto max-w-xl px-6 py-12 text-center">
+    <p class="text-lg font-bold">سبد خرید شما خالی است.</p>
+    <a href="{% url 'core:home' %}" class="btn-secondary mt-6">مشاهدهٔ محصولات</a>
+  </div>
+  {% endif %}
+</div>
+{% if oob %}{% include "cart/_oob.html" %}{% endif %}
