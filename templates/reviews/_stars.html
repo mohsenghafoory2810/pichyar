@@ -1,0 +1,2 @@
+{# Five stars for `rating` (1-5), read out as «۴ از ۵ ستاره». Optional: size (text class). #}
+<span role="img" aria-label="{{ rating|fa_digits }} از ۵ ستاره" class="inline-flex gap-0.5 leading-none {{ size|default:'text-base' }}">{% for _ in "12345" %}<span aria-hidden="true" class="{% if forloop.counter <= rating %}text-gold{% else %}text-line{% endif %}">★</span>{% endfor %}</span>

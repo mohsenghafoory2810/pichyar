@@ -1,0 +1,3 @@
+{% comment %}Average rating on a product card when product.rating_count > 0 (set by reviews.stats.attach_ratings).{% endcomment %}{% if product.rating_count %}{% load reviews_tags %}
+<p class="mt-1 text-xs text-ink-soft"><span role="img" aria-label="امتیاز {{ product.rating_average|fa_rating }} از ۵ بر اساس {{ product.rating_count|fa_number }} نظر"><span aria-hidden="true"><span class="text-gold">★</span> {{ product.rating_average|fa_rating }} ({{ product.rating_count|fa_number }})</span></span></p>
+{% endif %}

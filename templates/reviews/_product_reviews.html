@@ -1,0 +1,46 @@
+{% comment %}Reviews section on the product page. Context: product, request, user.
+Only approved reviews are shown and counted. ?reviews_page=N shows page N without JS;
+with HTMX «نظرهای بیشتر» appends the next page from reviews:list.{% endcomment %}
+{% load reviews_tags %}
+{% reviews_context product as rv %}
+<section id="reviews" aria-labelledby="reviews-title" class="mt-12 scroll-mt-24">
+  <h2 id="reviews-title" class="mb-4 text-xl font-bold">نظر خریداران</h2>
+
+  {% if rv.summary %}
+  {% with s=rv.summary %}
+  <div class="grid gap-6 md:grid-cols-3">
+    <div class="card self-start p-4">
+      <p class="flex items-baseline gap-2">
+        <span class="text-4xl font-extrabold">{{ s.average|fa_rating }}</span>
+        <span class="text-sm text-ink-soft">از ۵</span>
+      </p>
+      <div class="mt-1" aria-hidden="true">{% include "reviews/_stars.html" with rating=s.average|floatformat:0|add:0 size="text-xl" %}</div>
+      <p class="mt-1 text-sm text-ink-soft">بر اساس {{ s.count|fa_number }} نظر</p>
+      <ul class="mt-4 space-y-1.5 text-sm" aria-label="پراکندگی امتیازها">
+        {% for stars, count, percent in s.percentages %}
+        <li class="flex items-center gap-2">
+          <span class="w-14 shrink-0">{{ stars|fa_digits }} ستاره</span>
+          <span class="h-2 flex-1 overflow-hidden rounded-full bg-line" aria-hidden="true"><span class="block h-full rounded-full bg-gold" style="width: {{ percent }}%"></span></span>
+          <span class="w-10 shrink-0 text-start text-ink-soft">{{ percent|fa_digits }}٪</span>
+          <span class="sr-only">({{ count|fa_number|default:"۰" }} نظر)</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="md:col-span-2">
+      <ul id="review-items" class="space-y-3">
+        {% include "reviews/_review_items.html" with page=rv.page %}
+      </ul>
+      {% if rv.page.has_previous %}
+      <p class="mt-3 text-sm"><a class="link" href="{{ product.get_absolute_url }}{% if rv.page.previous_page_number > 1 %}?reviews_page={{ rv.page.previous_page_number }}{% endif %}#reviews">نظرهای جدیدتر</a></p>
+      {% endif %}
+    </div>
+  </div>
+  {% endwith %}
+  {% else %}
+  <p class="card p-4 text-sm text-ink-soft">هنوز نظری برای این محصول منتشر نشده است. اگر این محصول را خریده‌اید، اولین نظر را شما بنویسید.</p>
+  {% endif %}
+
+  {% include "reviews/_form_area.html" with form=rv.form own_review=rv.own_review %}
+</section>

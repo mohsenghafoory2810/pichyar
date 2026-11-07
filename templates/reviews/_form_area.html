@@ -1,0 +1,62 @@
+{# The «write a review» area; also the HTMX response of reviews:submit (it replaces itself).
+   Context: product, user; optional form, own_review, thanks, notice. #}
+<div id="review-form-area" class="mt-8" aria-live="polite">
+  <h3 class="mb-3 text-lg font-bold">نظر شما دربارهٔ این محصول</h3>
+  {% if thanks %}
+    <p class="alert-success" role="status">{{ thanks }}</p>
+  {% elif not user.is_authenticated %}
+    <p class="card p-4 text-sm leading-7">
+      برای ثبت نظر ابتدا
+      <a class="link" href="{% url 'accounts:login' %}?next={{ product.get_absolute_url|urlencode }}%23reviews">وارد حساب کاربری</a>
+      شوید.
+    </p>
+  {% elif own_review %}
+    <div class="card space-y-2 p-4 text-sm leading-7">
+      {% if notice %}<p class="alert-info" role="status">{{ notice }}</p>{% endif %}
+      {% if own_review.status == "pending" %}
+        <p>نظر شما <span class="rounded-full bg-gold/20 px-2 py-0.5 font-medium">در انتظار بررسی</span> است و پس از تأیید نمایش داده می‌شود.</p>
+        <div class="flex items-center gap-2">{% include "reviews/_stars.html" with rating=own_review.rating %}{% if own_review.title %}<span class="font-bold">{{ own_review.title }}</span>{% endif %}</div>
+        <p class="text-ink-soft [overflow-wrap:anywhere]">{{ own_review.text|linebreaksbr }}</p>
+      {% elif own_review.status == "approved" %}
+        <p>نظر شما برای این محصول ثبت و منتشر شده است. سپاس از همراهی شما.</p>
+      {% else %}
+        <p>شما قبلاً برای این محصول نظر ثبت کرده‌اید.</p>
+      {% endif %}
+    </div>
+  {% else %}
+    <form method="post" action="{% url 'reviews:submit' product.pk %}" novalidate
+          hx-post="{% url 'reviews:submit' product.pk %}" hx-target="#review-form-area" hx-swap="outerHTML"
+          class="card space-y-4 p-4">
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}<p class="alert-error" role="alert">{{ error }}</p>{% endfor %}
+
+      <fieldset{% if form.rating.errors %} aria-describedby="rating-errors"{% endif %}>
+        <legend class="mb-2 text-sm font-medium">{{ form.rating.label }} <span class="text-error" aria-hidden="true">*</span></legend>
+        <div class="flex flex-wrap gap-2">
+          {% for choice in form.rating %}
+          <label class="cursor-pointer">
+            <input type="radio" name="{{ choice.data.name }}" value="{{ choice.data.value }}" class="peer sr-only"
+                   {% if choice.data.selected %}checked{% endif %} required>
+            <span class="inline-flex items-center gap-1 rounded-xl border border-line px-3 py-2 text-sm peer-checked:border-gold peer-checked:bg-gold/20 peer-checked:font-bold peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-navy">
+              {{ choice.data.value|fa_digits }} <span aria-hidden="true" class="text-gold">★</span><span class="sr-only">ستاره</span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+        {% if form.rating.errors %}<div id="rating-errors">{% for error in form.rating.errors %}<p class="mt-1 text-sm text-error">{{ error }}</p>{% endfor %}</div>{% endif %}
+      </fieldset>
+
+      {% include "partials/form_field.html" with field=form.title %}
+      {% include "partials/form_field.html" with field=form.text %}
+
+      {# Honeypot: off-screen and hidden from assistive tech; people leave it empty. #}
+      <div class="sr-only" aria-hidden="true">
+        <label for="{{ form.website.id_for_label }}">{{ form.website.label }}</label>
+        {{ form.website }}
+      </div>
+
+      <p class="text-xs leading-6 text-ink-soft">نظرها پس از بررسی منتشر می‌شوند. لطفاً تجربهٔ خودتان از محصول را بنویسید.</p>
+      <button type="submit" class="btn-cta">ثبت نظر</button>
+    </form>
+  {% endif %}
+</div>

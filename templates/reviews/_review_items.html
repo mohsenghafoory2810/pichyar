@@ -1,0 +1,9 @@
+{# One page of approved reviews as <li> items, then the «more» item. Context: product, page. #}
+{% for review in page.object_list %}{% include "reviews/_review.html" %}{% endfor %}
+{% if page.has_next %}
+<li id="reviews-more" class="list-none">
+  <a href="{{ product.get_absolute_url }}?reviews_page={{ page.next_page_number }}#reviews"
+     hx-get="{% url 'reviews:list' product.pk %}?page={{ page.next_page_number }}" hx-target="#reviews-more" hx-swap="outerHTML"
+     class="btn-secondary w-full">نظرهای بیشتر</a>
+</li>
+{% endif %}

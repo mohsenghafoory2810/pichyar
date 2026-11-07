@@ -1,0 +1,23 @@
+{# One approved review. Customer text is auto-escaped (linebreaksbr escapes before adding <br>). #}
+{% load reviews_tags %}
+<li class="card list-none p-4">
+  <article>
+    <header class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      {% include "reviews/_stars.html" with rating=review.rating %}
+      {% if review.title %}<h3 class="font-bold">{{ review.title }}</h3>{% endif %}
+    </header>
+    <p class="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-ink-soft">
+      <span>{{ review.user|review_author }}</span>
+      <span aria-hidden="true">·</span>
+      <time datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|jdate:"%d %B %Y" }}</time>
+      {% if review.verified_purchase %}<span class="rounded-full bg-success/10 px-2 py-0.5 font-medium text-success">خرید تأییدشده</span>{% endif %}
+    </p>
+    <p class="mt-3 leading-8 text-ink [overflow-wrap:anywhere]">{{ review.text|linebreaksbr }}</p>
+    {% if review.admin_reply %}
+    <div class="mt-3 rounded-xl border-s-4 border-gold bg-cream px-4 py-3 text-sm">
+      <p class="font-bold">پاسخ فروشگاه</p>
+      <p class="mt-1 leading-7 [overflow-wrap:anywhere]">{{ review.admin_reply|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+  </article>
+</li>
