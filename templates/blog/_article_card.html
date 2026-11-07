@@ -1,0 +1,26 @@
+{# Article card. Expects `article` (category selected); `htag` = heading tag for the title (default h2). #}
+{% load blog %}
+<article class="card group flex flex-col overflow-hidden">
+  <a href="{{ article.get_absolute_url }}" class="flex flex-1 flex-col">
+    {% if article.cover %}
+      <div class="aspect-[1200/630] overflow-hidden bg-line/40">
+        <img src="{{ article.cover.url }}" alt="{{ article.cover_alt_text }}"
+             width="{{ article.cover_width|default:1200 }}" height="{{ article.cover_height|default:630 }}"
+             loading="lazy" decoding="async"
+             class="h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105">
+      </div>
+    {% else %}
+      <div class="aspect-[1200/630] bg-line/40" aria-hidden="true"></div>
+    {% endif %}
+    <div class="flex flex-1 flex-col p-4">
+      {% if article.category %}<p class="text-xs font-medium text-navy">{{ article.category.name }}</p>{% endif %}
+      {% with htag=htag|default:"h2" %}
+      <{{ htag }} class="mt-1 line-clamp-2 font-bold leading-7">{{ article.title }}</{{ htag }}>
+      {% endwith %}
+      <p class="mt-auto flex flex-wrap gap-x-3 pt-3 text-xs text-ink-soft">
+        {% if article.published_at %}<time datetime="{{ article.published_at|iso }}">{{ article.published_at|jdate:"%d %B %Y" }}</time>{% endif %}
+        <span>{{ article.reading_minutes|fa_digits }} دقیقه مطالعه</span>
+      </p>
+    </div>
+  </a>
+</article>

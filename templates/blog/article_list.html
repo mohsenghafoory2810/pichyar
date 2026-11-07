@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "blog/_breadcrumbs.html" %}
+
+<header class="mb-6">
+  <h1 class="text-2xl font-extrabold leading-10 md:text-3xl">{{ heading }}{% if page_obj.number > 1 %} <span class="text-base font-medium text-ink-soft">(صفحهٔ {{ page_obj.number|fa_digits }})</span>{% endif %}</h1>
+  {% if category.description and page_obj.number == 1 %}
+    <p class="mt-2 max-w-3xl leading-8 text-ink-soft">{{ category.description }}</p>
+  {% endif %}
+</header>
+
+{% if articles %}
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for article in articles %}
+      {% include "blog/_article_card.html" with htag="h2" %}
+    {% endfor %}
+  </div>
+  {% include "blog/_pagination.html" %}
+{% else %}
+  <p class="card p-6 text-center text-ink-soft">هنوز مقاله‌ای منتشر نشده است.</p>
+{% endif %}
+{% endblock %}

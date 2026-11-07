@@ -1,0 +1,14 @@
+{# Home page section «تازه‌ترین مقاله‌ها». Expects `latest_articles` (blog.services.latest_articles()); renders nothing when empty. #}
+{% if latest_articles %}
+<section aria-labelledby="latest-articles-title" class="mt-10">
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <h2 id="latest-articles-title" class="text-xl font-extrabold">تازه‌ترین مقاله‌ها</h2>
+    <a href="{% url 'blog:list' %}" class="link text-sm">همهٔ مقاله‌ها</a>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for article in latest_articles %}
+      {% include "blog/_article_card.html" with htag="h3" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
