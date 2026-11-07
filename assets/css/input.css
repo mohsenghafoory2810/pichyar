@@ -1,0 +1,54 @@
+/* Tailwind v4 entry. Built to static/css/app.css by the standalone CLI:
+   tailwindcss -i assets/css/input.css -o static/css/app.css --minify
+   Colours are defined in static/css/tokens.css. */
+@import "tailwindcss" source(none);
+@source "../../templates";
+@source "../../*/templates";
+@source "../../*/*.py";
+
+@theme inline {
+  --color-cream: var(--c-cream);
+  --color-surface: var(--c-surface);
+  --color-line: var(--c-border);
+  --color-ink: var(--c-ink);
+  --color-ink-soft: var(--c-ink-soft);
+  --color-gold: var(--c-gold);
+  --color-gold-hover: var(--c-gold-hover);
+  --color-navy: var(--c-navy);
+  --color-success: var(--c-success);
+  --color-error: var(--c-error);
+  --font-sans: var(--font-sans);
+}
+
+@layer base {
+  :focus-visible { outline: 3px solid var(--c-navy); outline-offset: 2px; }
+  header :focus-visible, footer.dark :focus-visible { outline-color: var(--c-gold); }
+}
+
+@layer components {
+  .btn-cta {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-5 py-3 font-bold text-ink transition-colors hover:bg-gold-hover;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-ink/30 px-5 py-3 font-medium text-ink transition-colors hover:bg-ink/5;
+  }
+  .btn-pay {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3 font-bold text-white transition-opacity hover:opacity-90;
+  }
+  .btn-cta:disabled, .btn-pay:disabled { @apply cursor-not-allowed opacity-50; }
+  .card { @apply rounded-2xl border border-line bg-surface; }
+  .input {
+    @apply block w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-ink placeholder:text-ink-soft/60 aria-invalid:border-error;
+  }
+  .link { @apply font-medium text-navy underline underline-offset-4; }
+  .alert-success { @apply rounded-xl bg-success/10 px-4 py-3 text-sm text-success; }
+  .alert-error { @apply rounded-xl bg-error/10 px-4 py-3 text-sm text-error; }
+  .alert-info { @apply rounded-xl bg-navy/10 px-4 py-3 text-sm text-navy; }
+  .rich-text { @apply leading-8 text-ink; }
+  .rich-text h2 { @apply mt-8 mb-3 text-xl font-bold; }
+  .rich-text h3 { @apply mt-6 mb-2 text-lg font-bold; }
+  .rich-text p { @apply mb-4; }
+  .rich-text ul { @apply mb-4 list-disc ps-6; }
+  .rich-text ol { @apply mb-4 list-decimal ps-6; }
+  .rich-text a { @apply font-medium text-navy underline underline-offset-4; }
+}

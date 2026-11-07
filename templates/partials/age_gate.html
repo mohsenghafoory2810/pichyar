@@ -1,0 +1,16 @@
+<div id="age-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+     role="dialog" aria-modal="true" aria-labelledby="age-gate-title" aria-describedby="age-gate-desc">
+  <div class="w-full max-w-sm rounded-2xl bg-cream p-6 text-center shadow-2xl">
+    <p class="text-lg font-extrabold text-ink-soft">{{ site_settings.site_name }}</p>
+    <h2 id="age-gate-title" class="mt-3 text-2xl font-extrabold">آیا بالای ۱۸ سال سن دارید؟</h2>
+    <p id="age-gate-desc" class="mt-3 text-sm leading-7 text-ink-soft">
+      این فروشگاه محصولات دخانی و لوازم مصرف دخانیات عرضه می‌کند و ورود و خرید فقط برای افراد بالای ۱۸ سال مجاز است.
+    </p>
+    <form method="post" action="{% url 'core:age_confirm' %}" class="mt-6 flex flex-col gap-3">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="btn-cta w-full" autofocus>بله، بالای ۱۸ سال دارم</button>
+      <a href="{{ age_gate_exit_url }}" class="btn-secondary w-full" rel="nofollow noreferrer">خیر، خروج از سایت</a>
+    </form>
+  </div>
+</div>

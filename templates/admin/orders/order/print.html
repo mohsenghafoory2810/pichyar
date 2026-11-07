@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/print-slip.css' %}">
+  <script src="{% static 'js/admin-print.js' %}" defer></script>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <button type="button" data-print>چاپ</button>
+    <span>{{ orders|length|fa_number }} سفارش — هر سفارش در یک صفحه چاپ می‌شود. بخش بالا برچسب نشانی است و می‌توانید آن را جدا کنید.</span>
+  </div>
+
+  {% for o in orders %}
+  <article class="slip">
+    <section class="label">
+      <div class="label-to">
+        <div class="caption">گیرنده</div>
+        <div class="name">{{ o.recipient_name }}</div>
+        <div class="address">{{ o.get_province_display }}، {{ o.city }}، {{ o.address }}</div>
+        <div class="row"><span>کد پستی:</span> <b dir="ltr" class="ltr-num">{{ o.postal_code }}</b></div>
+        <div class="row"><span>موبایل:</span> <b dir="ltr" class="ltr-num">{{ o.recipient_mobile }}</b></div>
+      </div>
+      <div class="label-from">
+        <div class="caption">فرستنده</div>
+        <div class="name">{{ site_settings.site_name }}</div>
+        {% if site_settings.phone %}<div dir="ltr" class="ltr-num">{{ site_settings.phone }}</div>{% endif %}
+        <div class="order-no">سفارش <b>{{ o.number|fa_digits }}</b></div>
+      </div>
+    </section>
+
+    <section class="packing">
+      <h2>برگهٔ بسته‌بندی — سفارش {{ o.number|fa_digits }}</h2>
+      <p class="meta">تاریخ ثبت: {{ o.created_at|jdatetime }}{% if o.paid_at %} — پرداخت: {{ o.paid_at|jdatetime }}{% endif %} — {{ o.get_payment_method_display }}</p>
+      <table>
+        <thead><tr><th class="check">✓</th><th>کالا</th><th>واحد</th><th>تعداد</th></tr></thead>
+        <tbody>
+        {% for item in o.items.all %}
+          <tr{% if item.is_gift %} class="gift"{% endif %}>
+            <td class="check"><span class="box"></span></td>
+            <td>{% if item.is_gift %}<b>[هدیه]</b> {% endif %}{{ item.name }}</td>
+            <td>{{ item.unit|default:"-" }}</td>
+            <td class="qty">{{ item.quantity|fa_number }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% if o.note %}<p class="note"><b>توضیحات مشتری:</b> {{ o.note|linebreaksbr }}</p>{% endif %}
+    </section>
+  </article>
+  {% empty %}
+  <p>سفارشی انتخاب نشده است.</p>
+  {% endfor %}
+</body>
+</html>

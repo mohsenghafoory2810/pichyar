@@ -1,0 +1,36 @@
+/* Packing slip + address label (admin «چاپ برگهٔ بسته‌بندی»). A5/A4 friendly, black on white. */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 16px; font-family: var(--font-sans); color: #000; background: #fff; font-size: 14px; line-height: 1.7; }
+.toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; padding: 10px 12px; background: #f3f0ea; border-radius: 8px; flex-wrap: wrap; }
+.toolbar button { font: inherit; font-weight: 700; padding: 6px 20px; border: 0; border-radius: 6px; background: var(--c-ink); color: #fff; cursor: pointer; }
+.slip { max-width: 190mm; margin: 0 auto 24px; }
+.label { display: grid; grid-template-columns: 2fr 1fr; gap: 0; border: 2px solid #000; border-radius: 6px; }
+.label > div { padding: 10px 14px; }
+.label-from { border-inline-start: 2px dashed #000; font-size: 13px; }
+.caption { font-size: 12px; font-weight: 700; color: #444; }
+.label .name { font-size: 20px; font-weight: 800; }
+.label-from .name { font-size: 15px; }
+.address { font-size: 16px; margin: 4px 0 6px; }
+.row b, .order-no b { font-size: 16px; letter-spacing: .05em; }
+.ltr-num { unicode-bidi: embed; }
+.order-no { margin-top: 10px; }
+.packing { margin-top: 14px; }
+.packing h2 { font-size: 16px; margin: 0 0 2px; }
+.meta { margin: 0 0 8px; font-size: 12px; color: #333; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #000; padding: 4px 8px; text-align: start; vertical-align: top; }
+th { background: #eee; }
+td.qty { font-weight: 800; font-size: 16px; text-align: center; width: 5em; }
+.check { width: 2.2em; text-align: center; }
+.box { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #000; }
+tr.gift td { background: #f6f6f6; }
+.note { border: 1px solid #000; padding: 6px 8px; margin-top: 8px; }
+
+@media print {
+  @page { size: A5; margin: 8mm; }
+  body { padding: 0; font-size: 12px; }
+  .no-print { display: none !important; }
+  .slip { max-width: none; margin: 0; page-break-after: always; break-after: page; }
+  .slip:last-child { page-break-after: auto; break-after: auto; }
+  th, tr.gift td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

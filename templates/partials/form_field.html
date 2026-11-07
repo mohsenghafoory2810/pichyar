@@ -1,0 +1,9 @@
+{# One form field: label, widget, help text and errors. Usage: {% include "partials/form_field.html" with field=form.city %} #}
+<div class="space-y-1">
+  <label for="{{ field.id_for_label }}" class="block text-sm font-medium">
+    {{ field.label }}{% if field.field.required %} <span class="text-error" aria-hidden="true">*</span>{% endif %}
+  </label>
+  {{ field }}
+  {% if field.help_text %}<p class="text-xs text-ink-soft" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+  {% for error in field.errors %}<p class="text-sm text-error">{{ error }}</p>{% endfor %}
+</div>

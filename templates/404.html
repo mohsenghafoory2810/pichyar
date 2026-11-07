@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}صفحه پیدا نشد | {{ site_settings.site_name }}{% endblock %}
+{% block robots %}noindex, follow{% endblock %}
+{% block canonical %}{% endblock %}
+
+{% block content %}
+<section class="card mx-auto max-w-xl px-6 py-12 text-center">
+  <p class="text-5xl font-extrabold text-ink-soft">۴۰۴</p>
+  <h1 class="mt-4 text-2xl font-extrabold">صفحه‌ای که دنبالش بودید پیدا نشد</h1>
+  <a href="{% url 'core:home' %}" class="btn-cta mt-6">بازگشت به صفحهٔ اصلی</a>
+</section>
+{% endblock %}

@@ -1,0 +1,109 @@
+/* Admin branding on top of Django's stock (RTL-aware) admin styles. */
+:root, html[data-theme="light"], html[data-theme="dark"] {
+  --font-family-primary: var(--font-sans);
+  --header-bg: var(--c-ink);
+  --header-color: var(--c-cream);
+  --header-link-color: var(--c-cream);
+  --header-branding-color: var(--c-gold);
+  --breadcrumbs-bg: var(--c-ink-soft);
+  --breadcrumbs-fg: var(--c-cream);
+  --breadcrumbs-link-fg: #fff;
+  --button-bg: var(--c-ink-soft);
+  --button-hover-bg: var(--c-ink);
+  --default-button-bg: var(--c-navy);
+  --default-button-hover-bg: var(--c-ink);
+  --accent: var(--c-gold);
+}
+#site-name a { font-weight: 700; }
+input, textarea, select, button { font-family: var(--font-sans); }
+
+/* --- Catalog --- */
+.catalog-thumb { border-radius: 6px; object-fit: cover; aspect-ratio: 1; background: var(--c-border); }
+#result_list td.field-price input { width: 9em; }
+#result_list td.field-stock input { width: 5em; }
+/* Low-stock rows: the "stock state" column renders a .stock-flag span. */
+#result_list tr:has(.stock-low) td { background: #FFF6DB; }
+#result_list tr:has(.stock-out) td { background: #FDECEA; }
+.stock-flag { font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.stock-low { color: #7A5B00; background: #F7E3A3; }
+.stock-out { color: #fff; background: var(--c-error); }
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) #result_list tr:has(.stock-low) td { background: #3A3110; }
+  html:not([data-theme="light"]) #result_list tr:has(.stock-out) td { background: #3D1714; }
+}
+html[data-theme="dark"] #result_list tr:has(.stock-low) td { background: #3A3110; }
+html[data-theme="dark"] #result_list tr:has(.stock-out) td { background: #3D1714; }
+
+/* Image inline drag & drop; the order column is filled in by the script. */
+.sortable-images.js-sortable td.field-order,
+.sortable-images.js-sortable th.column-order { display: none; }
+.sortable-images tr.form-row[draggable="true"] { cursor: grab; }
+.sortable-images tr.dragging { opacity: .5; }
+.sortable-images tbody tr.form-row:first-child .field-preview::after {
+  content: "تصویر اصلی"; display: block; font-size: 11px; font-weight: 700; color: var(--c-success);
+}
+.drag-handle { font-size: 18px; color: var(--c-ink-soft); margin-inline-end: 6px; cursor: grab; user-select: none; }
+.bulk-price-preview { margin: 8px 0 16px; min-width: 50%; }
+
+/* --- Order status badges (orders list, order page, customer history) --- */
+.order-status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; white-space: nowrap;
+  background: #F7E3A3; color: #4A3700; }
+.order-status.status-paid_processing { background: #DCEBFA; color: #123A63; }
+.order-status.status-shipped, .order-status.status-delivered { background: #D7EEDF; color: #1D4A33; }
+.order-status.status-canceled, .order-status.status-failed { background: #FBE1DE; color: #7A1A10; }
+.muted { color: var(--body-quiet-color); }
+
+/* --- Dashboard (admin home) --- */
+.dash { margin-bottom: 24px; }
+.dash-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.dash-tile { display: block; padding: 14px 16px; border: 1px solid var(--hairline-color); border-radius: 10px; background: var(--body-bg); color: var(--body-fg); }
+a.dash-tile:hover, a.dash-tile:focus { border-color: var(--c-gold); text-decoration: none; }
+.dash-tile-label { font-size: 13px; color: var(--body-quiet-color); }
+.dash-tile-value { font-size: 22px; font-weight: 800; margin: 4px 0; }
+.dash-tile-sub { font-size: 12px; color: var(--body-quiet-color); }
+.dash-tile-action.is-hot { border-color: var(--c-gold); box-shadow: inset 4px 0 0 var(--c-gold); }
+.dash-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.dash-cols .module, .dash-chart { margin-bottom: 0; }
+.dash-chart { margin-bottom: 16px; padding-bottom: 8px; }
+.dash-chart .help, .dash-chart details { padding: 0 12px; }
+.dash-table { width: 100%; }
+.dash-empty { padding: 8px 12px; color: var(--body-quiet-color); }
+/* Sales chart: one series, one hue (validated: light #2F6FA8, dark #4F86C0), recessive axis. */
+.sales-svg { --bar: #2F6FA8; width: 100%; height: 200px; display: block; padding: 8px 12px 0; }
+.sales-svg .bar { fill: var(--bar); }
+.sales-svg .hit { fill: transparent; }
+.sales-svg .bar-slot:hover .hit { fill: var(--hairline-color); }
+.sales-svg .axis { stroke: var(--hairline-color); stroke-width: 1; }
+.sales-svg .tick { font-size: 10px; fill: var(--body-quiet-color); font-family: var(--font-sans); }
+@media (prefers-color-scheme: dark) { html:not([data-theme="light"]) .sales-svg { --bar: #4F86C0; } }
+html[data-theme="dark"] .sales-svg { --bar: #4F86C0; }
+
+/* --- Order page --- */
+.order-head { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin: 4px 0 16px; }
+.order-head .order-status { font-size: 14px; padding: 4px 14px; }
+.order-actions { padding-bottom: 8px; }
+.order-action { padding: 10px 12px; border-bottom: 1px solid var(--hairline-color); }
+.order-action:last-child { border-bottom: 0; }
+.order-action form { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 0 12px; }
+.order-action input[type="text"], .order-action input:not([type]) { min-width: 16em; }
+.order-action .help { margin: 6px 0 0; }
+.button.danger, input.danger { background: var(--c-error); color: #fff; }
+.button.danger:hover { background: #8E1B12; }
+.order-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.order-grid .module { margin-bottom: 0; }
+.order-detail .module { margin-bottom: 12px; }
+.order-table { width: 100%; }
+.order-table tfoot th { text-align: start; }
+.order-table tr.grand th, .order-table tr.grand td { font-weight: 800; }
+.gift-tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 8px; border-radius: 999px; background: #D7EEDF; color: #1D4A33; }
+.order-dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; padding: 8px 12px; margin: 0; }
+.order-dl dt { font-weight: 700; color: var(--body-quiet-color); }
+.order-dl dd { margin: 0; }
+.receipt-thumb { max-height: 120px; max-width: 160px; border-radius: 6px; border: 1px solid var(--hairline-color); }
+
+/* --- Two-step login page --- */
+.two-factor .module { padding-bottom: 12px; }
+.two-factor .module > p, .two-factor ol { padding: 0 12px; }
+.qr-box { width: 220px; margin: 8px 12px; background: #fff; padding: 8px; border-radius: 8px; }
+.qr-box svg { width: 100%; height: auto; display: block; }
+.secret { font-size: 15px; letter-spacing: .08em; }

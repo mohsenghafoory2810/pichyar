@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>در حال به‌روزرسانی | {{ site_settings.site_name }}</title>
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="flex min-h-screen items-center justify-center bg-cream p-4 font-sans text-ink">
+  <main class="card max-w-md p-8 text-center">
+    <p class="text-xl font-extrabold">{{ site_settings.site_name }}</p>
+    <h1 class="mt-4 text-2xl font-extrabold">در حال به‌روزرسانی</h1>
+    <p class="mt-3 leading-7 text-ink-soft">{{ site_settings.maintenance_message|fa_digits|linebreaksbr }}</p>
+    {% if site_settings.phone %}
+      <p class="mt-4 text-sm">تلفن: <a href="tel:{{ site_settings.phone }}" dir="ltr" class="font-bold">{{ site_settings.phone|fa_digits }}</a></p>
+    {% endif %}
+  </main>
+</body>
+</html>

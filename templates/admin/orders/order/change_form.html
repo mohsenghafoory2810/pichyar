@@ -1,0 +1,157 @@
+{% extends "admin/change_form.html" %}
+{# Order detail: read-only panels and the state-change buttons (each its own POST form; see OrderAdmin.action_view). #}
+
+{% block content %}
+{% with o=order %}
+<div id="content-main" class="order-detail">
+  <ul class="object-tools">
+    <li><a href="{{ print_url }}" target="_blank" rel="noopener">چاپ برگهٔ بسته‌بندی</a></li>
+    <li><a href="{% url 'admin:orders_order_history' o.pk %}">تاریخچهٔ تغییرات پنل</a></li>
+  </ul>
+
+  <div class="order-head">
+    <span class="order-status status-{{ o.status }}">{{ o.get_status_display }}</span>
+    <span>ثبت: {{ o.created_at|jdatetime }}</span>
+    <span>{{ o.get_payment_method_display }}</span>
+    {% if o.paid_at %}<span>تأیید پرداخت: {{ o.paid_at|jdatetime }}</span>{% endif %}
+    {% if o.post_tracking_code %}<span>کد رهگیری پست: <b dir="ltr">{{ o.post_tracking_code }}</b></span>{% endif %}
+  </div>
+
+  {# --- actions --- #}
+  {% if can_approve or can_ship or can_deliver or can_cancel or can_resend_admin_sms %}
+  <div class="module order-actions">
+    <h2>کارهای این سفارش</h2>
+    {% if can_approve %}
+    <div class="order-action">
+      <form method="post" action="{% url 'admin:orders_order_action' o.pk 'approve' %}">{% csrf_token %}
+        <button type="submit" class="button default">تأیید پرداخت کارت به کارت</button>
+      </form>
+      <form method="post" action="{% url 'admin:orders_order_action' o.pk 'reject' %}" data-confirm="پرداخت رد و سفارش لغو شود؟">{% csrf_token %}
+        <input name="reason" maxlength="200" placeholder="دلیل رد (اختیاری)">
+        <button type="submit" class="button danger">رد پرداخت</button>
+      </form>
+      <p class="help">قبل از تأیید، مبلغ و کد پیگیری پایین صفحه را با حساب بانکی مقایسه کنید. با تأیید، موجودی کالاها و هدیه‌ها کم می‌شود.</p>
+    </div>
+    {% endif %}
+    {% if can_ship %}
+    <div class="order-action">
+      <form method="post" action="{% url 'admin:orders_order_action' o.pk 'ship' %}">{% csrf_token %}
+        <label for="tracking_code">کد رهگیری پست:</label>
+        <input id="tracking_code" name="tracking_code" required dir="ltr" inputmode="numeric" maxlength="40" autocomplete="off">
+        <button type="submit" class="button default">ثبت ارسال و پیامک به مشتری</button>
+      </form>
+    </div>
+    {% endif %}
+    {% if can_deliver %}
+    <div class="order-action">
+      <form method="post" action="{% url 'admin:orders_order_action' o.pk 'deliver' %}">{% csrf_token %}
+        <button type="submit" class="button default">ثبت «تحویل‌شده»</button>
+      </form>
+    </div>
+    {% endif %}
+    {% if can_resend_admin_sms %}
+    <div class="order-action">
+      <form method="post" action="{% url 'admin:orders_order_action' o.pk 'resend_admin_sms' %}">{% csrf_token %}
+        <button type="submit" class="button">ارسال مجدد پیامک ادمین</button>
+      </form>
+      {% if not has_admin_numbers %}<p class="help">هنوز شمارهٔ مدیری در تنظیمات سایت وارد نشده است.</p>{% endif %}
+    </div>
+    {% endif %}
+    {% if can_cancel %}
+    <div class="order-action">
+      <form method="post" action="{% url 'admin:orders_order_action' o.pk 'cancel' %}" data-confirm="سفارش {{ o.number|fa_digits }} لغو شود؟ این کار برگشت‌پذیر نیست.">{% csrf_token %}
+        <input name="note" maxlength="200" placeholder="دلیل لغو (اختیاری)">
+        <button type="submit" class="button danger">لغو سفارش</button>
+      </form>
+      {% if o.is_confirmed %}<p class="help">با لغو، موجودی کالاها، موجودی هدیه‌ها و استفادهٔ کد تخفیف برمی‌گردد. بازگرداندن پول (اگر پرداخت شده) را خودتان انجام دهید.</p>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="order-grid">
+    {# --- items --- #}
+    <div class="module">
+      <h2>اقلام سفارش</h2>
+      <table class="order-table">
+        <thead><tr><th>کالا</th><th>تعداد</th><th>قیمت واحد</th><th>جمع</th></tr></thead>
+        <tbody>
+        {% for item in paid_items %}
+          <tr><td>{% if item.product_id %}<a href="{% url 'admin:catalog_product_change' item.product_id %}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}{% if item.unit %} <span class="muted">({{ item.unit }})</span>{% endif %}</td>
+            <td>{{ item.quantity|fa_number }}</td><td>{{ item.unit_price|toman }}</td><td>{{ item.line_total|toman }}</td></tr>
+        {% endfor %}
+        {% for item in gift_items %}
+          <tr class="gift-row"><td><span class="gift-tag">هدیه</span> {{ item.name }}</td><td>{{ item.quantity|fa_number }}</td><td>رایگان</td><td>-</td></tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr><th colspan="3">جمع کالاها</th><td>{{ o.items_subtotal|toman|default:"۰ تومان" }}</td></tr>
+          {% if o.discount_amount %}<tr><th colspan="3">تخفیف{% if o.discount_code_text %} (کد <span dir="ltr">{{ o.discount_code_text }}</span>){% endif %}</th><td>− {{ o.discount_amount|toman }}</td></tr>{% endif %}
+          <tr><th colspan="3">هزینهٔ ارسال</th><td>{% if o.shipping_fee %}{{ o.shipping_fee|toman }}{% else %}رایگان{% endif %}</td></tr>
+          <tr class="grand"><th colspan="3">مبلغ قابل پرداخت</th><td>{{ o.total|toman|default:"۰ تومان" }}</td></tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {# --- address --- #}
+    <div class="module">
+      <h2>گیرنده و نشانی</h2>
+      <dl class="order-dl">
+        <dt>نام گیرنده</dt><dd>{{ o.recipient_name }}</dd>
+        <dt>موبایل گیرنده</dt><dd dir="ltr">{{ o.recipient_mobile }}</dd>
+        <dt>نشانی</dt><dd>{{ o.get_province_display }}، {{ o.city }}، {{ o.address }}</dd>
+        <dt>کد پستی</dt><dd dir="ltr">{{ o.postal_code }}</dd>
+        <dt>موبایل سفارش‌دهنده</dt><dd><span dir="ltr">{{ o.mobile }}</span>
+          {% if o.user_id %} — <a href="{% url 'admin:accounts_customer_change' o.user_id %}">{{ o.user.name|default:"حساب مشتری" }}</a>{% else %} (مهمان){% endif %}</dd>
+        {% if o.note %}<dt>توضیحات مشتری</dt><dd>{{ o.note|linebreaksbr }}</dd>{% endif %}
+        <dt>تأیید سن</dt><dd>{% if o.age_confirmed %}بله{% if o.age_confirmed_at %} — {{ o.age_confirmed_at|jdatetime }}{% endif %}{% else %}خیر{% endif %}</dd>
+      </dl>
+    </div>
+  </div>
+
+  {# --- payments --- #}
+  <div class="module">
+    <h2>پرداخت‌ها</h2>
+    {% if payments %}
+    <table class="order-table">
+      <thead><tr><th>زمان</th><th>روش</th><th>مبلغ</th><th>وضعیت</th><th>جزئیات</th><th>رسید</th></tr></thead>
+      <tbody>
+      {% for p in payments %}
+        <tr>
+          <td>{{ p.created_at|jdatetime }}</td>
+          <td>{{ p.get_method_display }}{% if p.gateway %} <span class="muted">({{ p.gateway }})</span>{% endif %}</td>
+          <td>{{ p.amount|toman }}</td>
+          <td>{{ p.get_status_display }}{% if p.verified_at %}<br><span class="muted">{{ p.verified_at|jdatetime }}</span>{% endif %}</td>
+          <td>
+            {% if p.tracking_number %}کد پیگیری کارت به کارت: <b dir="ltr">{{ p.tracking_number }}</b><br>{% endif %}
+            {% if p.ref_id %}کد پیگیری بانکی: <b dir="ltr">{{ p.ref_id }}</b><br>{% endif %}
+            {% if p.card_pan %}کارت پرداخت‌کننده: <span dir="ltr">{{ p.card_pan }}</span><br>{% endif %}
+            {% if p.message %}<span class="muted">{{ p.message }}</span>{% endif %}
+          </td>
+          <td>{% if p.receipt %}<a href="{% url 'payments:receipt' p.pk %}" target="_blank" rel="noopener"><img src="{% url 'payments:receipt' p.pk %}" alt="تصویر رسید" class="receipt-thumb"></a>{% else %}-{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="muted">هنوز پرداختی ثبت نشده است.</p>{% endif %}
+  </div>
+
+  {# --- status history --- #}
+  <div class="module">
+    <h2>تاریخچهٔ وضعیت</h2>
+    <table class="order-table">
+      <thead><tr><th>زمان</th><th>از</th><th>به</th><th>توضیح</th><th>توسط</th></tr></thead>
+      <tbody>
+      {% for log in logs %}
+        <tr><td>{{ log.created_at|jdatetime }}</td><td>{{ log.get_from_status_display|default:"-" }}</td><td>{{ log.get_to_status_display }}</td>
+          <td>{{ log.note|default:"-" }}</td><td>{{ log.changed_by|default:"سیستم / مشتری" }}</td></tr>
+      {% empty %}
+        <tr><td colspan="5" class="muted">هنوز تغییری ثبت نشده است.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endwith %}
+<script src="{% static 'js/admin-confirm.js' %}" defer></script>
+{% endblock %}

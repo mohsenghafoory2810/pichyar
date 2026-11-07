@@ -1,0 +1,27 @@
+{# Mobile-only sticky bottom bar: cart total + checkout. Re-sent out-of-band (oob=True) after HTMX cart changes. #}
+{% with count=cart_count|default:0 %}
+<nav id="bottom-bar" class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur md:hidden" aria-label="نوار پایین"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
+    <a href="{% url 'core:home' %}" class="flex flex-col items-center px-2 text-xs text-ink-soft">
+      <svg aria-hidden="true" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>
+      خانه
+    </a>
+    <a href="{% if user.is_authenticated %}{% url 'accounts:orders' %}{% else %}{% url 'accounts:login' %}{% endif %}" class="flex flex-col items-center px-2 text-xs text-ink-soft">
+      <svg aria-hidden="true" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+      حساب
+    </a>
+    {% if count %}
+      <a href="{% url 'cart:detail' %}" class="ms-auto text-start leading-5" aria-label="سبد خرید، {{ count|fa_digits }} کالا">
+        <span class="block text-xs text-ink-soft">جمع کل ({{ count|fa_digits }} کالا)</span>
+        <span class="font-extrabold" id="bottom-total">{{ cart_summary.total|toman }}</span>
+      </a>
+      <a href="{% url 'orders:checkout' %}" class="btn-cta py-2.5">تسویه حساب</a>
+    {% else %}
+      <a href="{% url 'cart:detail' %}" class="btn-cta ms-auto flex-1 py-2.5" id="bottom-cart">
+        سبد خرید
+        <span class="rounded-full bg-ink px-2 text-xs leading-5 text-cream">{{ count|fa_digits }}</span>
+      </a>
+    {% endif %}
+  </div>
+</nav>
+{% endwith %}

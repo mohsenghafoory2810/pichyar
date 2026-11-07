@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl">{% include "partials/breadcrumbs.html" %}</div>
+<article class="card mx-auto max-w-3xl p-6 md:p-10">
+  <h1 class="text-2xl font-extrabold md:text-3xl">{{ page.title }}</h1>
+  <p class="mt-2 text-xs text-ink-soft">آخرین به‌روزرسانی: <time datetime="{{ page.updated_at|date:'c' }}">{{ page.updated_at|jdate:"%d %B %Y" }}</time></p>
+  <div class="rich-text mt-6">{{ page.body|safe }}</div>
+</article>
+{% endblock %}

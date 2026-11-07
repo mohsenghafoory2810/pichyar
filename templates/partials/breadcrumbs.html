@@ -1,0 +1,15 @@
+{# Visible breadcrumbs from page_meta.breadcrumbs (the same list feeds the BreadcrumbList JSON-LD in base.html). #}
+{% if page_meta.breadcrumbs %}
+<nav aria-label="مسیر" class="mb-4 text-sm text-ink-soft">
+  <ol class="flex flex-wrap items-center gap-1">
+    {% for crumb in page_meta.breadcrumbs %}
+      {% if not forloop.first %}<li aria-hidden="true">›</li>{% endif %}
+      {% if forloop.last %}
+        <li aria-current="page" class="text-ink">{{ crumb.name }}</li>
+      {% else %}
+        <li><a href="{{ crumb.url }}" class="hover:text-ink hover:underline">{{ crumb.name }}</a></li>
+      {% endif %}
+    {% endfor %}
+  </ol>
+</nav>
+{% endif %}

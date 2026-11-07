@@ -1,0 +1,40 @@
+{% load seo %}<header class="bg-ink text-cream">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
+    <a href="{% url 'core:home' %}" class="flex items-center gap-2 text-xl font-extrabold">
+      {% if site_settings.logo %}
+        {% image_size site_settings.logo as logo_size %}
+        <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }}" class="h-10 w-auto"
+             {% if logo_size %}width="{{ logo_size.width }}" height="{{ logo_size.height }}"{% else %}height="40"{% endif %} decoding="async">
+      {% else %}
+        {{ site_settings.site_name }}
+      {% endif %}
+    </a>
+
+    <nav class="order-2 ms-auto flex items-center gap-1 md:order-3" aria-label="حساب و سبد خرید">
+      <a href="{% if user.is_authenticated %}{% url 'accounts:orders' %}{% else %}{% url 'accounts:login' %}{% endif %}" class="flex items-center gap-1 rounded-lg px-3 py-2 hover:bg-cream/10">
+        <svg aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        <span>{% if user.is_authenticated %}حساب من{% else %}ورود{% endif %}</span>
+      </a>
+      {% include "partials/header_cart.html" %}
+    </nav>
+
+    <form action="{% url 'catalog:search' %}" method="get" role="search" class="order-3 w-full md:order-2 md:w-auto md:max-w-md md:flex-1">
+      <label for="site-search" class="sr-only">جستجوی محصولات</label>
+      <div class="relative">
+        <input id="site-search" name="q" type="search" value="{{ request.GET.q }}" placeholder="جستجو در محصولات…"
+               class="w-full rounded-full border-0 bg-cream py-2.5 ps-4 pe-11 text-ink placeholder:text-ink-soft">
+        <button type="submit" class="absolute inset-y-0 left-0 flex items-center px-3 text-ink" aria-label="جستجو">
+          <svg aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+      </div>
+    </form>
+  </div>
+  <nav class="border-t border-cream/10" aria-label="بخش‌های فروشگاه">
+    <ul class="mx-auto flex max-w-6xl gap-1 overflow-x-auto whitespace-nowrap px-2 text-sm [scrollbar-width:none]">
+      {% for cat in footer_categories %}
+        <li><a href="{{ cat.get_absolute_url }}" class="inline-block rounded-lg px-3 py-2 hover:bg-cream/10">{{ cat.name }}</a></li>
+      {% endfor %}
+      <li><a href="{% url 'blog:list' %}" class="inline-block rounded-lg px-3 py-2 hover:bg-cream/10">مقاله‌ها</a></li>
+    </ul>
+  </nav>
+</header>

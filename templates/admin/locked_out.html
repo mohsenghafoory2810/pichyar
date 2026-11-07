@@ -1,0 +1,18 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/login.css" %}">{% endblock %}
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p class="errornote">ورود به پنل مدیریت موقتاً بسته شد.</p>
+  <p>به خاطر چند بار ورود ناموفق (رمز یا کد دومرحله‌ای نادرست)، ورود از این اتصال برای مدتی بسته شده است. لطفاً بعداً دوباره تلاش کنید.</p>
+  <p>اگر خودتان مدیر سایت هستید و نمی‌توانید صبر کنید، روی سرور این دستور را اجرا کنید:</p>
+  <p dir="ltr"><code>docker compose exec app python manage.py axes_reset</code></p>
+</div>
+{% endblock %}

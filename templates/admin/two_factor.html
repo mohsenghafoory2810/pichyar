@@ -1,0 +1,51 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs"><a href="{% url 'admin:index' %}">پیشخوان</a> &rsaquo; ورود دومرحله‌ای</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main" class="two-factor">
+  {% if error %}<p class="errornote">{{ error }}</p>{% endif %}
+
+  {% if confirmed %}
+    <div class="module aligned">
+      <h2>ورود دومرحله‌ای روشن است</h2>
+      <p>برای ورود به پنل، علاوه بر رمز، کد ۶ رقمی برنامهٔ احراز هویت گوشی‌تان را وارد می‌کنید.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="disable">
+        <div class="form-row">
+          <label for="id_token">کد فعلی برنامه برای خاموش کردن:</label>
+          <input id="id_token" name="token" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="8" required>
+        </div>
+        <div class="submit-row"><input type="submit" class="deletelink" value="خاموش کردن ورود دومرحله‌ای"></div>
+      </form>
+    </div>
+  {% else %}
+    <div class="module aligned">
+      <h2>روشن کردن ورود دومرحله‌ای (اختیاری، ولی بسیار توصیه می‌شود)</h2>
+      <ol>
+        <li>روی گوشی یک برنامهٔ احراز هویت نصب کنید، مثلاً <b>Google Authenticator</b> یا <b>Microsoft Authenticator</b>.</li>
+        <li>در برنامه گزینهٔ «افزودن» یا علامت + را بزنید و این تصویر را اسکن کنید:</li>
+      </ol>
+      <div class="qr-box" dir="ltr">{{ qr_svg }}</div>
+      <p>اگر اسکن نشد، این کلید را دستی وارد کنید: <code dir="ltr" class="secret">{{ secret }}</code></p>
+      <ol start="3">
+        <li>کد ۶ رقمی‌ای که برنامه نشان می‌دهد را اینجا بنویسید و «روشن کردن» را بزنید.</li>
+      </ol>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="enable">
+        <div class="form-row">
+          <label for="id_token">کد ۶ رقمی:</label>
+          <input id="id_token" name="token" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="8" required>
+        </div>
+        <div class="submit-row"><input type="submit" class="default" value="روشن کردن"></div>
+      </form>
+      <p class="help">اگر گوشی را گم کردید، مدیر دیگری می‌تواند در «کاربران و امنیت ← ورود دومرحله‌ای مدیران» ردیف شما را پاک کند،
+        یا روی سرور: <code dir="ltr">docker compose exec app python manage.py disable_2fa &lt;موبایل&gt;</code></p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

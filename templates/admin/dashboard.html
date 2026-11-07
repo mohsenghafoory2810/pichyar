@@ -1,0 +1,113 @@
+{% extends "admin/index.html" %}
+{# The admin home: sales figures, orders that need action, low stock and a 30-day sales chart (orders.reports.dashboard). #}
+
+{% block content %}
+<div id="content-main">
+{% with d=dashboard %}
+<section class="dash" aria-label="خلاصهٔ فروش">
+  <div class="dash-tiles">
+    {% for p in d.sales %}
+    <div class="dash-tile">
+      <div class="dash-tile-label">فروش {{ p.label }}</div>
+      <div class="dash-tile-value">{{ p.amount|toman|default:"۰ تومان" }}</div>
+      <div class="dash-tile-sub">{{ p.count|fa_number|default:"۰" }} سفارش پرداخت‌شده</div>
+    </div>
+    {% endfor %}
+    <a class="dash-tile dash-tile-action{% if d.awaiting_count %} is-hot{% endif %}" href="{% url 'admin:orders_order_changelist' %}?status__exact=awaiting_approval">
+      <div class="dash-tile-label">در انتظار تأیید کارت به کارت</div>
+      <div class="dash-tile-value">{{ d.awaiting_count|fa_number|default:"۰" }}</div>
+      <div class="dash-tile-sub">بررسی و تأیید ←</div>
+    </a>
+    <a class="dash-tile dash-tile-action{% if d.to_ship_count %} is-hot{% endif %}" href="{% url 'admin:orders_order_changelist' %}?status__exact=paid_processing">
+      <div class="dash-tile-label">آمادهٔ ارسال</div>
+      <div class="dash-tile-value">{{ d.to_ship_count|fa_number|default:"۰" }}</div>
+      <div class="dash-tile-sub">ثبت کد رهگیری ←</div>
+    </a>
+    <a class="dash-tile dash-tile-action{% if pending_reviews_count %} is-hot{% endif %}" href="{% url 'admin:reviews_review_changelist' %}?status__exact=pending">
+      <div class="dash-tile-label">نظرهای در انتظار بررسی</div>
+      <div class="dash-tile-value">{{ pending_reviews_count|fa_number|default:"۰" }}</div>
+      <div class="dash-tile-sub">بررسی نظرها ←</div>
+    </a>
+  </div>
+
+  <div class="module dash-chart">
+    <h2>فروش {{ d.chart.days|fa_number }} روز اخیر (جمع: {{ d.chart.total|toman|default:"۰ تومان" }})</h2>
+    {% if d.chart.max %}
+    <svg viewBox="0 0 {{ d.chart.width }} {{ d.chart.height }}" role="img" aria-label="نمودار ستونی فروش روزانهٔ {{ d.chart.days|fa_number }} روز اخیر؛ جدول همین داده‌ها زیر نمودار است." preserveAspectRatio="none" class="sales-svg">
+      <line x1="0" x2="{{ d.chart.width }}" y1="{{ d.chart.baseline }}" y2="{{ d.chart.baseline }}" class="axis"/>
+      {% for b in d.chart.bars %}
+      <g class="bar-slot">
+        <title>{{ b.date }}: {{ b.amount|toman|default:"بدون فروش" }} ({{ b.count|fa_number|default:"۰" }} سفارش)</title>
+        <rect class="hit" x="{{ b.slot_x }}" y="0" width="{{ b.slot_w }}" height="{{ d.chart.baseline }}"/>
+        {% if b.h %}<path class="bar" d="M{{ b.x }},{{ d.chart.baseline }} v-{{ b.h }} h{{ b.w }} v{{ b.h }} z"/>{% endif %}
+        {% if b.show_label %}<text x="{{ b.slot_x }}" dx="{{ b.slot_w }}" y="{{ d.chart.label_y }}" class="tick" text-anchor="end">{{ b.label }}</text>{% endif %}
+      </g>
+      {% endfor %}
+    </svg>
+    <p class="help">بیشترین فروش روزانه: {{ d.chart.max|toman }}. ماوس را روی هر ستون نگه دارید تا مبلغ آن روز را ببینید. امروز سمت چپ است.</p>
+    {% else %}
+    <p class="help dash-empty">در {{ d.chart.days|fa_number }} روز اخیر سفارش پرداخت‌شده‌ای نبوده است.</p>
+    {% endif %}
+    <details>
+      <summary>جدول فروش روزانه</summary>
+      <table class="dash-table">
+        <thead><tr><th>روز</th><th>سفارش</th><th>مبلغ</th></tr></thead>
+        <tbody>
+        {% for b in d.chart.bars reversed %}<tr><td>{{ b.date }}</td><td>{{ b.count|fa_number|default:"۰" }}</td><td>{{ b.amount|toman|default:"-" }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </details>
+  </div>
+
+  <div class="dash-cols">
+    <div class="module">
+      <h2>در انتظار تأیید کارت به کارت</h2>
+      {% if d.awaiting %}
+      <table class="dash-table">
+        <thead><tr><th>سفارش</th><th>گیرنده</th><th>مبلغ</th><th>ثبت</th></tr></thead>
+        <tbody>
+        {% for o in d.awaiting %}
+        <tr><td><a href="{% url 'admin:orders_order_change' o.pk %}">{{ o.number|fa_digits }}</a></td><td>{{ o.recipient_name }}</td><td>{{ o.total|toman }}</td><td>{{ o.created_at|jdatetime }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="dash-empty">موردی نیست.</p>{% endif %}
+    </div>
+
+    <div class="module">
+      <h2>منتظر ارسال (پرداخت‌شده)</h2>
+      {% if d.to_ship %}
+      <table class="dash-table">
+        <thead><tr><th>سفارش</th><th>گیرنده</th><th>شهر</th><th>پرداخت</th></tr></thead>
+        <tbody>
+        {% for o in d.to_ship %}
+        <tr><td><a href="{% url 'admin:orders_order_change' o.pk %}">{{ o.number|fa_digits }}</a></td><td>{{ o.recipient_name }}</td><td>{{ o.city }}</td><td>{{ o.paid_at|jdatetime }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="dash-empty">موردی نیست.</p>{% endif %}
+    </div>
+
+    <div class="module">
+      <h2>موجودی کم{% if d.low_stock_count %} ({{ d.low_stock_count|fa_number }} محصول){% endif %}</h2>
+      {% if d.low_stock %}
+      <table class="dash-table">
+        <thead><tr><th>محصول</th><th>موجودی</th><th>آستانه</th></tr></thead>
+        <tbody>
+        {% for p in d.low_stock %}
+        <tr><td><a href="{% url 'admin:catalog_product_change' p.pk %}">{{ p.name }}</a></td>
+          <td><span class="stock-flag {% if p.stock == 0 %}stock-out{% else %}stock-low{% endif %}">{% if p.stock == 0 %}ناموجود{% else %}{{ p.stock|fa_number }}{% endif %}</span></td>
+          <td>{{ p.low_stock_threshold|fa_number|default:"۰" }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <p><a href="{% url 'admin:catalog_product_changelist' %}?stock_state=low">همهٔ محصولات کم‌موجودی ←</a></p>
+      {% else %}<p class="dash-empty">همهٔ محصولات فعال موجودی کافی دارند.</p>{% endif %}
+    </div>
+  </div>
+</section>
+{% endwith %}
+
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+</div>
+{% endblock %}

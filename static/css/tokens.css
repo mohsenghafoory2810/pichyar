@@ -1,0 +1,23 @@
+/* Brand tokens: the ONE place to change site colours and font.
+   Used by the storefront (via Tailwind, see assets/css/input.css) and the admin. */
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/static/fonts/vazirmatn/Vazirmatn-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --c-cream: #FAF7F2;      /* page background */
+  --c-surface: #FFFFFF;    /* cards */
+  --c-border: #E8DFD3;
+  --c-ink: #3D2B1F;        /* header + main text (dark tobacco brown) */
+  --c-ink-soft: #6F4E37;   /* secondary text */
+  --c-gold: #C9A227;       /* the single CTA colour (with --c-ink text) */
+  --c-gold-hover: #D9B53A;
+  --c-navy: #1E3A5F;       /* payment / secure checkout */
+  --c-success: #2F6B4F;
+  --c-error: #B42318;
+  --font-sans: "Vazirmatn", Tahoma, "Segoe UI", sans-serif;
+}

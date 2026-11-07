@@ -1,0 +1,19 @@
+{% if orders %}
+<table class="order-table">
+  <thead><tr><th>سفارش</th><th>تاریخ ثبت</th><th>وضعیت</th><th>اقلام</th><th>مبلغ</th></tr></thead>
+  <tbody>
+  {% for o in orders %}
+    <tr>
+      <td><a href="{% url 'admin:orders_order_change' o.pk %}">{{ o.number|fa_digits }}</a>{% if not o.user_id %} <span class="muted">(مهمان)</span>{% endif %}</td>
+      <td>{{ o.created_at|jdatetime }}</td>
+      <td><span class="order-status status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+      <td>{% for item in o.items.all %}{{ item.short_name|default:item.name }} × {{ item.quantity|fa_number }}{% if item.is_gift %} (هدیه){% endif %}{% if not forloop.last %}، {% endif %}{% endfor %}</td>
+      <td>{{ o.total|toman }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p><a href="{{ all_url }}">این سفارش‌ها در فهرست سفارش‌ها ←</a></p>
+{% else %}
+<span class="muted">هنوز سفارشی ثبت نکرده است.</span>
+{% endif %}

@@ -1,0 +1,57 @@
+<footer class="border-t border-line bg-surface">
+  <div class="mx-auto grid max-w-6xl gap-6 px-4 py-8 md:grid-cols-4">
+    <div>
+      <p class="text-lg font-extrabold">{{ site_settings.site_name }}</p>
+      {% if site_settings.support_info %}
+        <p class="mt-2 text-sm leading-7 text-ink-soft">{{ site_settings.support_info|fa_digits|linebreaksbr }}</p>
+      {% endif %}
+    </div>
+    <nav aria-label="دسته‌بندی‌ها">
+      <p class="mb-2 text-sm font-bold">دسته‌بندی‌ها</p>
+      <ul class="space-y-2 text-sm">
+        {% for cat in footer_categories %}
+          <li><a href="{{ cat.get_absolute_url }}" class="text-ink-soft hover:text-ink hover:underline">{{ cat.name }}</a>
+            {% if cat.active_children %}
+            <ul class="mt-1 space-y-1 ps-3">
+              {% for child in cat.active_children %}
+                <li><a href="{{ child.get_absolute_url }}" class="text-ink-soft hover:text-ink hover:underline">{{ child.name }}</a></li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </li>
+        {% endfor %}
+        <li><a href="{% url 'blog:list' %}" class="text-ink-soft hover:text-ink hover:underline">مقاله‌ها</a></li>
+      </ul>
+    </nav>
+    <nav aria-label="صفحه‌های اطلاعاتی">
+      <p class="mb-2 text-sm font-bold">راهنما</p>
+      <ul class="space-y-2 text-sm">
+        <li><a href="{% url 'orders:track' %}" class="text-ink-soft hover:text-ink hover:underline">پیگیری سفارش</a></li>
+        {% for p in footer_pages %}
+          <li><a href="{{ p.get_absolute_url }}" class="text-ink-soft hover:text-ink hover:underline">{{ p.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+    {% if site_settings.phone or site_settings.social_urls %}
+    <div class="text-sm">
+      {% if site_settings.phone %}
+        <p class="text-ink-soft">تلفن پشتیبانی</p>
+        <a href="tel:{{ site_settings.phone }}" class="mt-1 inline-block text-lg font-bold" dir="ltr">{{ site_settings.phone|fa_digits }}</a>
+      {% endif %}
+      {% if site_settings.social_urls %}
+        <ul class="mt-3 space-y-1" dir="ltr">
+          {% for url in site_settings.social_urls %}
+            <li><a href="{{ url }}" class="text-ink-soft hover:text-ink hover:underline" rel="me noopener">{{ url|cut:"https://"|cut:"www." }}</a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% if site_settings.health_warning %}
+    <p class="border-t border-line px-4 py-3 text-center text-sm font-bold" data-health-warning>{{ site_settings.health_warning }}</p>
+  {% endif %}
+  <p class="border-t border-line py-4 text-center text-xs text-ink-soft">
+    فروش فقط به افراد بالای ۱۸ سال. تمامی حقوق برای {{ site_settings.site_name }} محفوظ است.
+  </p>
+</footer>
