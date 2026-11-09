@@ -23,6 +23,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 RUN useradd --create-home --uid 1000 app
 COPY requirements.txt .
+ARG PIP_INDEX_URL=https://pypi.org/simple
+ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_RETRIES=10
 RUN pip install -r requirements.txt
 COPY . .
 COPY --from=css /out/app.css static/css/app.css
