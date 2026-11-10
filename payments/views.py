@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
-from core.utils import get_site_settings
 from orders.models import Order
 from orders.services import can_view
 
@@ -56,7 +55,6 @@ def result(request, payment_id):
 
 def card_to_card(request, number):
     order = _order_for(request, number)
-    site_settings = get_site_settings(request)
     if not order.can_submit_card_transfer:
         return redirect(order.get_absolute_url())
     form = CardTransferForm(request.POST or None, request.FILES or None)
@@ -71,7 +69,7 @@ def card_to_card(request, number):
     return render(
         request,
         "payments/card_to_card.html",
-        {"order": order, "form": form, "cards": site_settings.active_cards()},
+        {"order": order, "form": form},
     )
 
 

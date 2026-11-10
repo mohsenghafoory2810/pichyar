@@ -58,6 +58,7 @@ class OrderAdmin(PersianDigitsSearchMixin, ModelAdminJalaliMixin, admin.ModelAdm
         "total_display",
         "payment_method",
         "status_badge",
+        "next_step",
         "post_tracking_code",
     )
     list_filter = ("status", "payment_method", OrderDateFilter)
@@ -65,7 +66,7 @@ class OrderAdmin(PersianDigitsSearchMixin, ModelAdminJalaliMixin, admin.ModelAdm
     search_help_text = "شمارهٔ سفارش، موبایل، نام گیرنده یا کد رهگیری"
     list_select_related = ("user",)
     list_per_page = 50
-    actions = ["export_selected", "print_selected"]
+    actions = ["approve_selected", "export_selected", "print_selected"]
     change_form_template = "admin/orders/order/change_form.html"
     change_list_template = "admin/orders/order/change_list.html"
 
@@ -85,6 +86,13 @@ class OrderAdmin(PersianDigitsSearchMixin, ModelAdminJalaliMixin, admin.ModelAdm
     @admin.display(description="وضعیت", ordering="status")
     def status_badge(self, obj):
         return format_html('<span class="order-status status-{}">{}</span>', obj.status, obj.get_status_display())
+
+    @admin.display(description="اقدام")
+    def next_step(self, obj):
+        if obj.status != S.AWAITING_APPROVAL:
+            return "-"
+        url = reverse("admin:orders_order_change", args=[obj.pk])
+        return format_html('<a class="button" href="{}">بررسی و تأیید پرداخت</a>', url)
 
     # --- detail page --------------------------------------------------------------
 
@@ -206,6 +214,33 @@ class OrderAdmin(PersianDigitsSearchMixin, ModelAdminJalaliMixin, admin.ModelAdm
             raise PermissionDenied
         changelist = self.get_changelist_instance(request)
         return export.xlsx_response(changelist.get_queryset(request))
+
+    @admin.action(description="تأیید پرداخت کارت به کارت سفارش‌های انتخاب‌شده", permissions=["change"])
+    def approve_selected(self, request, queryset):
+        approved, errors = 0, []
+        for order in queryset.filter(status=S.AWAITING_APPROVAL).order_by("created_at", "id"):
+            try:
+                order.approve(by=request.user)
+            except stock.InsufficientStock as e:
+                errors.append(f"سفارش {fa_digits(order.number)}: موجودی کافی نیست؛ " + " ".join(e.messages))
+            except InvalidTransition as e:
+                errors.append(f"سفارش {fa_digits(order.number)}: {e}")
+            else:
+                approved += 1
+                self.log_change(request, order, self.ACTION_LABELS["approve"])
+        skipped = queryset.exclude(status=S.AWAITING_APPROVAL).count()
+        if approved:
+            self.message_user(
+                request, f"پرداخت {fa_number(approved)} سفارش تأیید شد و موجودی کالاها کسر شد.", messages.SUCCESS
+            )
+        for error in errors:
+            self.message_user(request, error, messages.ERROR)
+        if skipped:
+            self.message_user(
+                request,
+                f"{fa_number(skipped)} سفارش انتخاب‌شده «در انتظار تأیید پرداخت» نبود و تغییری نکرد.",
+                messages.WARNING,
+            )
 
     @admin.action(description="خروجی اکسل سفارش‌های انتخاب‌شده", permissions=["view"])
     def export_selected(self, request, queryset):

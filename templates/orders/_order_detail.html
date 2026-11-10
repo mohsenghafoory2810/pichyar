@@ -22,6 +22,24 @@
     </div>
     {% endif %}
   {% endif %}
+  {% if not tracking and order.can_submit_card_transfer %}
+  {% with cards=site_settings.active_cards %}
+  <section class="card space-y-3 p-4" aria-labelledby="pay-cards-title">
+    <h3 id="pay-cards-title" class="font-bold">شماره کارت برای واریز</h3>
+    <p class="text-sm">لطفاً دقیقاً مبلغ <b>{{ order.total|toman }}</b> را به یکی از کارت‌های زیر واریز کنید:</p>
+    <ul class="space-y-3">
+      {% for card in cards %}
+      <li class="rounded-xl border border-line p-4">
+        <p class="text-center text-xl font-bold tracking-wider" dir="ltr">{{ card.card_number_display|fa_digits }}</p>
+        <p class="mt-1 text-center text-sm text-ink-soft">به نام {{ card.holder_name }}{% if card.bank_name %} — {{ card.bank_name }}{% endif %}</p>
+      </li>
+      {% empty %}
+      <li class="alert-error">شماره کارتی ثبت نشده است. با پشتیبانی تماس بگیرید.</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endwith %}
+  {% endif %}
   {% if order.status == "awaiting_approval" %}
     <p class="alert-info">اطلاعات کارت به کارت شما دریافت شد و در حال بررسی است.</p>
   {% endif %}

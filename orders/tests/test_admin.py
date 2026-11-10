@@ -99,6 +99,47 @@ class OrderDetailTests(TempMediaMixin, OrderAdminTestCase):
         self.assertEqual(self.order.status, S.PENDING_PAYMENT)
 
 
+class OrderListApproveTests(OrderAdminTestCase):
+    def test_list_links_awaiting_orders_to_the_approve_page(self):
+        url = reverse("admin:orders_order_changelist")
+        self.assertNotContains(self.client.get(url), "بررسی و تأیید پرداخت")
+        submit_card_transfer(self.order, "123456")
+        response = self.client.get(url)
+        self.assertContains(response, "بررسی و تأیید پرداخت")
+        self.assertContains(response, self.change_url())
+        self.assertContains(response, "تأیید پرداخت کارت به کارت سفارش‌های انتخاب‌شده")
+
+    def test_bulk_approve_action(self):
+        submit_card_transfer(self.order, "123456")
+        with capture_sms():
+            other = make_order((self.paid, 1), mobile="09122222222")  # still pending payment
+        with capture_sms():
+            response = self.client.post(
+                reverse("admin:orders_order_changelist"),
+                {"action": "approve_selected", "_selected_action": [self.order.pk, other.pk]},
+                follow=True,
+            )
+        self.order.refresh_from_db()
+        other.refresh_from_db()
+        self.assertEqual(self.order.status, S.PAID_PROCESSING)
+        self.assertEqual(other.status, S.PENDING_PAYMENT)
+        self.assertEqual(Product.objects.get(pk=self.paid.pk).stock, 6)
+        self.assertContains(response, "پرداخت ۱ سفارش تأیید شد")
+        self.assertContains(response, "«در انتظار تأیید پرداخت» نبود")
+
+    def test_bulk_approve_without_enough_stock_shows_error(self):
+        submit_card_transfer(self.order, "123456")
+        Product.objects.filter(pk=self.paid.pk).update(stock=1)
+        response = self.client.post(
+            reverse("admin:orders_order_changelist"),
+            {"action": "approve_selected", "_selected_action": [self.order.pk]},
+            follow=True,
+        )
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, S.AWAITING_APPROVAL)
+        self.assertContains(response, "موجودی کافی نیست")
+
+
 class OrderActionTests(OrderAdminTestCase):
     def test_approve_reserves_stock_and_counts_discount(self):
         self.approved()

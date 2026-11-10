@@ -291,11 +291,19 @@ class CardToCardTests(TestCase):
         session.save()
         self.url = reverse("payments:card", args=[self.order.number])
 
-    def test_page_shows_cards_holder_and_exact_total(self):
+    def test_page_shows_exact_total_but_not_the_card_number(self):
         response = self.client.get(self.url)
+        self.assertNotContains(response, "۶۰۳۷-۹۹۱۲-۳۴۵۶-۷۸۹۰")
+        self.assertContains(response, "شماره کارت برای واریز در فاکتور نهایی سفارش نمایش داده می‌شود")
+        self.assertContains(response, self.order.get_absolute_url())
+        self.assertContains(response, "۴۵۰٬۰۰۰ تومان")
+
+    def test_invoice_shows_card_until_the_transfer_is_submitted(self):
+        response = self.client.get(self.order.get_absolute_url())
         self.assertContains(response, "۶۰۳۷-۹۹۱۲-۳۴۵۶-۷۸۹۰")
         self.assertContains(response, "به نام فروشگاه")
-        self.assertContains(response, "۴۵۰٬۰۰۰ تومان")
+        self.client.post(self.url, {"tracking_number": "987654"})
+        self.assertNotContains(self.client.get(self.order.get_absolute_url()), "۶۰۳۷-۹۹۱۲-۳۴۵۶-۷۸۹۰")
 
     def test_submit_with_receipt(self):
         response = self.client.post(self.url, {"tracking_number": "۹۸۷۶۵۴", "receipt": image_upload("r.png", "PNG", (400, 300))})

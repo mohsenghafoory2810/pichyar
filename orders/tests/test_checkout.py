@@ -83,9 +83,11 @@ class GuestCheckoutTests(CheckoutTestCase):
         self.p.refresh_from_db()
         self.assertEqual(self.p.stock, 5)  # reserved only when the payment is confirmed
         self.assertEqual(self.client.session.get("cart"), {})
-        # the guest can open their own order and the card page
-        self.assertContains(self.client.get(reverse("payments:card", args=[order.number])), "۶۰۳۷-۹۹۱۲-۳۴۵۶-۷۸۹۰")
-        self.assertContains(self.client.get(order.get_absolute_url()), order.number.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")))
+        # the guest can open their own order (the invoice, which has the card number) and the card page
+        self.assertContains(self.client.get(reverse("payments:card", args=[order.number])), "فاکتور نهایی")
+        invoice = self.client.get(order.get_absolute_url())
+        self.assertContains(invoice, order.number.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")))
+        self.assertContains(invoice, "۶۰۳۷-۹۹۱۲-۳۴۵۶-۷۸۹۰")
 
     def test_age_confirmation_is_required(self):
         self.verify_guest_mobile()

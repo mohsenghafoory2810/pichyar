@@ -64,10 +64,10 @@
       <h2>در انتظار تأیید کارت به کارت</h2>
       {% if d.awaiting %}
       <table class="dash-table">
-        <thead><tr><th>سفارش</th><th>گیرنده</th><th>مبلغ</th><th>ثبت</th></tr></thead>
+        <thead><tr><th>سفارش</th><th>گیرنده</th><th>مبلغ</th><th>ثبت</th><th></th></tr></thead>
         <tbody>
         {% for o in d.awaiting %}
-        <tr><td><a href="{% url 'admin:orders_order_change' o.pk %}">{{ o.number|fa_digits }}</a></td><td>{{ o.recipient_name }}</td><td>{{ o.total|toman }}</td><td>{{ o.created_at|jdatetime }}</td></tr>
+        <tr><td><a href="{% url 'admin:orders_order_change' o.pk %}">{{ o.number|fa_digits }}</a></td><td>{{ o.recipient_name }}</td><td>{{ o.total|toman }}</td><td>{{ o.created_at|jdatetime }}</td><td><a class="button" href="{% url 'admin:orders_order_change' o.pk %}">بررسی و تأیید</a></td></tr>
         {% endfor %}
         </tbody>
       </table>
