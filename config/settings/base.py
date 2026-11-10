@@ -134,6 +134,9 @@ LANGUAGES = [("fa", "فارسی")]
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
 USE_TZ = True
+# Persian for strings Django and the third-party apps ship untranslated (django-q2, axes,
+# django-otp, newer Django admin/auth texts). Edit the .po, then: python scripts/compile_po.py
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
 # --- Static & media -------------------------------------------------------
 STATIC_URL = "/static/"

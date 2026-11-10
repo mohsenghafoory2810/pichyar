@@ -1,0 +1,91 @@
+# Pichyar — Persian overrides (domain: djangojs)
+# Persian for strings that Django and the third-party apps ship untranslated.
+# Edit, then run:  python scripts/compile_po.py
+msgid ""
+msgstr "Project-Id-Version: pichyar\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# ---- Django admin widgets (django.contrib.admin) ----
+
+msgid "Choose %s by selecting them and then select the \"Choose\" arrow button."
+msgstr "%s موردنظر را انتخاب کنید و سپس روی پیکان «انتخاب» بزنید."
+
+msgid "Choose all %s"
+msgstr "انتخاب همهٔ %s"
+
+msgid "Choose selected %s"
+msgstr "افزودن %s انتخاب‌شده"
+
+msgid "Remove selected %s"
+msgstr "حذف %s انتخاب‌شده"
+
+msgid "Remove %s by selecting them and then select the \"Remove\" arrow button."
+msgstr "%s موردنظر را انتخاب کنید و سپس روی پیکان «حذف» بزنید."
+
+msgid "Type into this box to filter down the list of selected %s."
+msgstr "برای فیلتر کردن فهرست %s انتخاب‌شده در این کادر بنویسید."
+
+msgid "(click to clear)"
+msgstr "(برای پاک کردن کلیک کنید)"
+
+msgid "Remove all %s"
+msgstr "حذف همهٔ %s"
+
+msgid "%s selected option not visible"
+msgid_plural "%s selected options not visible"
+msgstr[0] "%s گزینهٔ انتخاب‌شده دیده نمی‌شود"
+msgstr[1] "%s گزینهٔ انتخاب‌شده دیده نمی‌شود"
+
+msgid "Sunday"
+msgstr "یکشنبه"
+
+msgid "Monday"
+msgstr "دوشنبه"
+
+msgid "Tuesday"
+msgstr "سه‌شنبه"
+
+msgid "Wednesday"
+msgstr "چهارشنبه"
+
+msgid "Thursday"
+msgstr "پنجشنبه"
+
+msgid "Friday"
+msgstr "جمعه"
+
+msgid "Saturday"
+msgstr "شنبه"
+
+msgctxt "abbrev. day Sunday"
+msgid "Sun"
+msgstr "ی"
+
+msgctxt "abbrev. day Monday"
+msgid "Mon"
+msgstr "د"
+
+msgctxt "abbrev. day Tuesday"
+msgid "Tue"
+msgstr "س"
+
+msgctxt "abbrev. day Wednesday"
+msgid "Wed"
+msgstr "چ"
+
+msgctxt "abbrev. day Thursday"
+msgid "Thur"
+msgstr "پ"
+
+msgctxt "abbrev. day Friday"
+msgid "Fri"
+msgstr "ج"
+
+msgctxt "abbrev. day Saturday"
+msgid "Sat"
+msgstr "ش"
+

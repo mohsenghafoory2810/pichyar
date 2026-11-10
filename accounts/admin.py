@@ -123,6 +123,9 @@ class TOTPDeviceAdmin(admin.ModelAdmin):
     list_display_links = None
     list_select_related = ("user",)
     search_fields = ("user__mobile", "user__name")
+    # The view page (reachable by URL) shows only these: the package's own fields have English labels
+    # and include the secret key.
+    fields = readonly_fields = ("owner", "confirmed_display", "created", "last_used")
 
     def has_add_permission(self, request):
         return False  # each admin turns it on for themselves («ورود دومرحله‌ای» in the top bar)

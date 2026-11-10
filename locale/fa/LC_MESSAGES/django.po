@@ -1,0 +1,481 @@
+# Pichyar — Persian overrides (domain: django)
+# Persian for strings that Django and the third-party apps ship untranslated.
+# Edit, then run:  python scripts/compile_po.py
+msgid ""
+msgstr "Project-Id-Version: pichyar\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# ---- Django admin (django.contrib.admin) ----
+
+msgid "Select this object for an action - {}"
+msgstr "انتخاب این مورد برای انجام اقدام - {}"
+
+msgid "Breadcrumbs"
+msgstr "مسیر صفحه"
+
+msgid "Model name"
+msgstr "نام بخش"
+
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] "لطفاً خطای زیر را اصلاح کنید."
+msgstr[1] "لطفاً خطاهای زیر را اصلاح کنید."
+
+msgid "This action will <strong>enable</strong> password-based authentication for this user."
+msgstr "این کار ورود با گذرواژه را برای این کاربر <strong>فعال</strong> می‌کند."
+
+msgid "entry"
+msgid_plural "entries"
+msgstr[0] "مورد"
+msgstr[1] "مورد"
+
+msgid "In case you’ve forgotten, you are:"
+msgstr "اگر فراموش کرده‌اید، شما این کاربر هستید:"
+
+# ---- Django auth (django.contrib.auth) ----
+
+msgid "Conflicting form data submitted. Please try again."
+msgstr "داده‌های فرستاده‌شده با هم ناسازگارند. لطفاً دوباره تلاش کنید."
+
+msgid "Password-based authentication was disabled."
+msgstr "ورود با گذرواژه غیرفعال شد."
+
+msgid "Set password: %s"
+msgstr "تعیین گذرواژه: %s"
+
+msgid "Reset password"
+msgstr "تغییر گذرواژه"
+
+msgid "Set password"
+msgstr "تعیین گذرواژه"
+
+msgid "Whether the user will be able to authenticate using a password or not. If disabled, they may still be able to authenticate using other backends, such as Single Sign-On or LDAP."
+msgstr "آیا کاربر می‌تواند با گذرواژه وارد شود یا نه. اگر غیرفعال باشد، ممکن است هنوز از راه‌های دیگر (مثلاً کد پیامکی) وارد شود."
+
+msgid "Password-based authentication"
+msgstr "ورود با گذرواژه"
+
+msgid "Enabled"
+msgstr "فعال"
+
+msgid "Disabled"
+msgstr "غیرفعال"
+
+msgid "Raw passwords are not stored, so there is no way to see the user’s password."
+msgstr "گذرواژه‌ها به‌صورت خام ذخیره نمی‌شوند، پس راهی برای دیدن گذرواژهٔ کاربر وجود ندارد."
+
+msgid "Enable password-based authentication for this user by setting a password."
+msgstr "با تعیین گذرواژه، ورود با گذرواژه را برای این کاربر فعال کنید."
+
+msgid "This password is too short. It must contain at least %d character."
+msgid_plural "This password is too short. It must contain at least %d characters."
+msgstr[0] "این گذرواژه خیلی کوتاه است. باید دست‌کم %d نویسه داشته باشد."
+msgstr[1] "این گذرواژه خیلی کوتاه است. باید دست‌کم %d نویسه داشته باشد."
+
+msgid "Enter a valid username. This value may contain only unaccented lowercase a-z and uppercase A-Z letters, numbers, and @/./+/-/_ characters."
+msgstr "یک نام کاربری معتبر وارد کنید. فقط حروف انگلیسی (a-z و A-Z)، عدد و نویسه‌های @/./+/-/_ مجاز است."
+
+# ---- Django forms and validators (django.core) ----
+
+msgid "Enter a valid domain name."
+msgstr "یک نام دامنهٔ معتبر وارد کنید."
+
+msgid "Enter a valid %(protocol)s address."
+msgstr "یک نشانی %(protocol)s معتبر وارد کنید."
+
+msgid "IPv4 or IPv6"
+msgstr "IPv4 یا IPv6"
+
+msgid "Ensure this value is a multiple of step size %(limit_value)s."
+msgstr "مقدار باید مضربی از %(limit_value)s باشد."
+
+msgid "Ensure this value is a multiple of step size %(limit_value)s, starting from %(offset)s, e.g. %(offset)s, %(valid_value1)s, %(valid_value2)s, and so on."
+msgstr "مقدار باید با گام %(limit_value)s و از %(offset)s شروع شود؛ مثلاً %(offset)s، %(valid_value1)s، %(valid_value2)s و به همین ترتیب."
+
+msgid "Constraint “%(name)s” is violated."
+msgstr "قید «%(name)s» رعایت نشده است."
+
+msgid "%(model)s instance with %(field)s %(value)r is not a valid choice."
+msgstr "%(model)s با %(field)s برابر %(value)r گزینهٔ معتبری نیست."
+
+msgid "Please submit at most %(num)d form."
+msgid_plural "Please submit at most %(num)d forms."
+msgstr[0] "لطفاً حداکثر %(num)d فرم بفرستید."
+msgstr[1] "لطفاً حداکثر %(num)d فرم بفرستید."
+
+msgid "Please submit at least %(num)d form."
+msgid_plural "Please submit at least %(num)d forms."
+msgstr[0] "لطفاً دست‌کم %(num)d فرم بفرستید."
+msgstr[1] "لطفاً دست‌کم %(num)d فرم بفرستید."
+
+# ---- django-import-export ----
+
+msgid "Import finished: {} new, {} updated, {} deleted and {} skipped {}."
+msgstr "ورود اطلاعات تمام شد: {} جدید، {} به‌روزرسانی، {} حذف و {} بدون تغییر {}."
+
+msgid "No valid data to import. Ensure your file has the correct headers or data for import."
+msgstr "داده‌ای برای ورود پیدا نشد. مطمئن شوید سرستون‌ها و داده‌های فایل درست است."
+
+msgid "export failed due to IllegalCharacterError"
+msgstr "ساختن فایل خروجی ناموفق بود: داده‌ها نویسهٔ غیرمجاز دارند"
+
+msgid "This exporter will export the following fields: "
+msgstr "این ستون‌ها در فایل خروجی می‌آیند:"
+
+msgid "Select all"
+msgstr "انتخاب همه"
+
+# ---- django-q2 (background tasks) ----
+
+msgid "Resubmit selected tasks to queue"
+msgstr "فرستادن دوبارهٔ کارهای انتخاب‌شده به صف"
+
+msgid "success"
+msgstr "موفق"
+
+msgid "last_run"
+msgstr "آخرین اجرا"
+
+msgid "Time Taken"
+msgstr "مدت اجرا"
+
+msgid "Short result"
+msgstr "خلاصهٔ نتیجه"
+
+msgid "Starting"
+msgstr "در حال شروع"
+
+msgid "Working"
+msgstr "در حال کار"
+
+msgid "Idle"
+msgstr "بیکار"
+
+msgid "Stopped"
+msgstr "متوقف"
+
+msgid "Stopping"
+msgstr "در حال توقف"
+
+msgid "Function"
+msgstr "تابع"
+
+msgid "Task id"
+msgstr "شناسهٔ کار"
+
+msgid "Name"
+msgstr "نام"
+
+msgid "Group"
+msgstr "گروه"
+
+msgid "Arguments"
+msgstr "آرگومان‌ها"
+
+msgid "Keyword arguments"
+msgstr "آرگومان‌های نام‌دار"
+
+msgid "Queue options"
+msgstr "گزینه‌های صف"
+
+msgid "Task"
+msgstr "کار"
+
+msgid "Tasks"
+msgstr "کارها"
+
+msgid "Successful task"
+msgstr "کار موفق"
+
+msgid "Successful tasks"
+msgstr "کارهای موفق"
+
+msgid "Failed task"
+msgstr "کار ناموفق"
+
+msgid "Failed tasks"
+msgstr "کارهای ناموفق"
+
+msgid "Scheduled task"
+msgstr "کار زمان‌بندی‌شده"
+
+msgid "Scheduled tasks"
+msgstr "کارهای زمان‌بندی‌شده"
+
+msgid "Queued task"
+msgstr "کار در صف"
+
+msgid "Queued tasks"
+msgstr "کارهای در صف"
+
+msgid "32-character task identifier."
+msgstr "شناسهٔ ۳۲ نویسه‌ای کار."
+
+msgid "Optional human-readable name for lookup and display."
+msgstr "نام خوانا برای جستجو و نمایش (اختیاری)."
+
+msgid "Dotted import path to the callable, e.g. myapp.tasks.job."
+msgstr "مسیر تابعی که اجرا می‌شود، مثلاً myapp.tasks.job."
+
+msgid "Hook"
+msgstr "تابع پس از اجرا"
+
+msgid "Optional dotted path to a callback that receives the task result."
+msgstr "مسیر تابعی که نتیجهٔ کار را دریافت می‌کند (اختیاری)."
+
+msgid "Pickled positional arguments (tuple)."
+msgstr "آرگومان‌های ترتیبی کار."
+
+msgid "Pickled keyword arguments (dict)."
+msgstr "آرگومان‌های نام‌دار کار."
+
+msgid "Result"
+msgstr "نتیجه"
+
+msgid "Pickled return value or error payload."
+msgstr "مقدار برگشتی کار یا متن خطا."
+
+msgid "Optional group id to aggregate related tasks."
+msgstr "شناسهٔ گروه برای کنار هم آوردن کارهای مرتبط (اختیاری)."
+
+msgid "Cluster"
+msgstr "کلاستر"
+
+msgid "Name of the cluster that executed this task."
+msgstr "نام کلاستری که این کار را اجرا کرد."
+
+msgid "Started at"
+msgstr "زمان شروع"
+
+msgid "When the worker started executing the task."
+msgstr "زمانی که اجرای کار شروع شد."
+
+msgid "Stopped at"
+msgstr "زمان پایان"
+
+msgid "When the worker finished (success or failure)."
+msgstr "زمانی که اجرای کار تمام شد (موفق یا ناموفق)."
+
+msgid "Success"
+msgstr "موفق"
+
+msgid "False if the task raised an exception or timed out."
+msgstr "اگر کار خطا داده یا بیش از زمان مجاز طول کشیده باشد، خاموش است."
+
+msgid "Attempt count"
+msgstr "تعداد تلاش"
+
+msgid "How many times execution was attempted."
+msgstr "چند بار برای اجرای کار تلاش شد."
+
+msgid "Please install croniter to enable cron expressions"
+msgstr "برای استفاده از عبارت cron بستهٔ croniter را نصب کنید"
+
+msgid "Optional label to identify this schedule in the admin."
+msgstr "برچسبی برای شناختن این زمان‌بندی در پنل مدیریت (اختیاری)."
+
+msgid "e.g. module.tasks.function"
+msgstr "مثلاً module.tasks.function"
+
+msgid "e.g. module.tasks.result_function"
+msgstr "مثلاً module.tasks.result_function"
+
+msgid "e.g. 1, 2, 'John'"
+msgstr "مثلاً 1, 2, 'John'"
+
+msgid "e.g. x=1, y=2, name='John'"
+msgstr "مثلاً x=1, y=2, name='John'"
+
+msgid "Once"
+msgstr "یک بار"
+
+msgid "Minutes"
+msgstr "هر چند دقیقه"
+
+msgid "Hourly"
+msgstr "ساعتی"
+
+msgid "Daily"
+msgstr "روزانه"
+
+msgid "Weekly"
+msgstr "هفتگی"
+
+msgid "Biweekly"
+msgstr "هر دو هفته"
+
+msgid "Monthly"
+msgstr "ماهانه"
+
+msgid "Bimonthly"
+msgstr "هر دو ماه"
+
+msgid "Quarterly"
+msgstr "هر سه ماه"
+
+msgid "Yearly"
+msgstr "سالانه"
+
+msgid "Schedule Type"
+msgstr "نوع زمان‌بندی"
+
+msgid "How often this task should be enqueued."
+msgstr "هر چند وقت یک بار این کار در صف قرار بگیرد."
+
+msgid "Number of minutes for the Minutes type"
+msgstr "تعداد دقیقه‌ها برای نوع «هر چند دقیقه»"
+
+msgid "Repeats"
+msgstr "تعداد تکرار"
+
+msgid "n = n times, -1 = forever"
+msgstr "n یعنی n بار؛ ‎-1 یعنی همیشه"
+
+msgid "Next Run"
+msgstr "اجرای بعدی"
+
+msgid "When this schedule runs next (stored in UTC)."
+msgstr "زمان اجرای بعدی این زمان‌بندی (به وقت UTC ذخیره می‌شود)."
+
+msgid "Cron expression"
+msgstr "عبارت cron"
+
+msgid "Last task id"
+msgstr "شناسهٔ آخرین کار"
+
+msgid "Id of the last task spawned from this schedule (read-only)."
+msgstr "شناسهٔ آخرین کاری که از این زمان‌بندی ساخته شد (فقط خواندنی)."
+
+msgid "Name of the target cluster"
+msgstr "نام کلاستر مقصد"
+
+msgid "Intended date kwarg"
+msgstr "آرگومان تاریخ برنامه‌ریزی‌شده"
+
+msgid "Name of kwarg to pass intended schedule date"
+msgstr "نام آرگومانی که تاریخ برنامه‌ریزی‌شده با آن فرستاده می‌شود"
+
+msgid "Cluster key"
+msgstr "کلید کلاستر"
+
+msgid "Payload"
+msgstr "محتوای کار"
+
+msgid "Signed serialized task package (do not edit manually)."
+msgstr "بستهٔ امضاشدهٔ کار (دستی ویرایش نکنید)."
+
+msgid "Lock until"
+msgstr "قفل تا"
+
+msgid "Prevent any cluster from pulling until"
+msgstr "تا این زمان هیچ کلاستری آن را برنمی‌دارد"
+
+# ---- django-axes (admin login lockouts) ----
+
+msgid "Form Data"
+msgstr "داده‌های فرم"
+
+msgid "Meta Data"
+msgstr "اطلاعات درخواست"
+
+msgid "Account locked: too many login attempts. Please try again later."
+msgstr "ورود قفل شد: تعداد تلاش‌های ناموفق بیش از حد مجاز بود. لطفاً بعداً دوباره تلاش کنید."
+
+msgid "Account locked: too many login attempts. Contact an admin to unlock your account."
+msgstr "ورود قفل شد: تعداد تلاش‌های ناموفق بیش از حد مجاز بود. برای باز شدن قفل با مدیر سایت تماس بگیرید."
+
+msgid "User Agent"
+msgstr "مرورگر (User Agent)"
+
+msgid "IP Address"
+msgstr "آی‌پی"
+
+msgid "Username"
+msgstr "نام کاربری"
+
+msgid "HTTP Accept"
+msgstr "HTTP Accept"
+
+msgid "Path"
+msgstr "مسیر"
+
+msgid "Attempt Time"
+msgstr "زمان تلاش"
+
+msgid "Access lock out"
+msgstr "قفل ورود"
+
+msgid "access failure"
+msgstr "ورود ناموفق"
+
+msgid "access failures"
+msgstr "ورودهای ناموفق"
+
+msgid "GET Data"
+msgstr "داده‌های GET"
+
+msgid "POST Data"
+msgstr "داده‌های POST"
+
+msgid "Failed Logins"
+msgstr "تعداد ورود ناموفق"
+
+msgid "access attempt"
+msgstr "قفل ورود به پنل"
+
+msgid "access attempts"
+msgstr "قفل‌های ورود به پنل"
+
+msgid "Logout Time"
+msgstr "زمان خروج"
+
+msgid "Session key hash (sha256)"
+msgstr "هش کلید نشست (sha256)"
+
+msgid "access log"
+msgstr "گزارش ورود"
+
+msgid "access logs"
+msgstr "گزارش‌های ورود"
+
+# ---- django-otp (two-step admin login) ----
+
+msgid "Please enter your OTP token."
+msgstr "لطفاً کد ورود دومرحله‌ای را وارد کنید."
+
+msgid "Error generating challenge: {0}"
+msgstr "خطا در ساختن کد: {0}"
+
+msgid "The selected OTP device is not interactive"
+msgstr "دستگاه انتخاب‌شده برای ورود دومرحله‌ای کد نمی‌فرستد"
+
+msgid "OTP Challenge: {0}"
+msgstr "کد ورود دومرحله‌ای: {0}"
+
+msgid "Invalid token. Please make sure you have entered it correctly."
+msgstr "کد نادرست است. مطمئن شوید آن را درست وارد کرده‌اید."
+
+msgid "Verification temporarily disabled because of %(failure_count)d failed attempt, please try again soon."
+msgid_plural "Verification temporarily disabled because of %(failure_count)d failed attempts, please try again soon."
+msgstr[0] "به دلیل %(failure_count)d تلاش ناموفق، بررسی کد موقتاً متوقف شده است؛ کمی بعد دوباره تلاش کنید."
+msgstr[1] "به دلیل %(failure_count)d تلاش ناموفق، بررسی کد موقتاً متوقف شده است؛ کمی بعد دوباره تلاش کنید."
+
+msgid "Verification of the token is currently disabled"
+msgstr "بررسی کد فعلاً متوقف است"
+
+msgid "sent by email"
+msgstr "فرستاده‌شده با ایمیل"
+
+msgid "OTP Device:"
+msgstr "دستگاه ورود دومرحله‌ای:"
+
+msgid "OTP Token:"
+msgstr "کد ورود دومرحله‌ای:"
+
+msgid "Get OTP Challenge"
+msgstr "دریافت کد"
+

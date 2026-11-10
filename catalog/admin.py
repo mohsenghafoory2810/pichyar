@@ -7,6 +7,7 @@ from django.urls import path, reverse
 from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 from import_export.formats.base_formats import XLSX
+from import_export.forms import SelectableFieldsExportForm
 from jalali_date.admin import ModelAdminJalaliMixin
 
 from core.persian import fa_number, jalali_format, toman
@@ -157,10 +158,19 @@ class StockFilter(admin.SimpleListFilter):
         return queryset
 
 
+class PersianExportForm(SelectableFieldsExportForm):
+    """Export page checkboxes labelled with the Persian column name only (not «Name (نام)»)."""
+
+    def _get_field_label(self, resource, field_name):
+        field = resource.fields.get(field_name)
+        return field.column_name if field and field.column_name else super()._get_field_label(resource, field_name)
+
+
 @admin.register(Product)
 class ProductAdmin(SEOAdminMixin, ModelAdminJalaliMixin, ImportExportModelAdmin):
     resource_classes = [ProductResource]
     formats = [XLSX]
+    export_form_class = PersianExportForm
     change_list_template = "admin/catalog/product/change_list_tools.html"
 
     list_display = ("thumbnail", "name", "category", "price", "unit", "stock", "stock_state", "is_active")

@@ -779,6 +779,8 @@ python manage.py runserver            # admin at /manage/ unless ADMIN_URL is se
 python manage.py test                 # uses config.settings.test automatically (file DB in var/db/, needed by the concurrency tests)
 ```
 
+Persian for strings Django and the third-party apps ship untranslated (django-q2, axes, django-otp, newer admin/auth texts) lives in `locale/fa/LC_MESSAGES/{django,djangojs}.po`; after editing run `python scripts/compile_po.py` (pure Python, no gettext needed) and commit the `.mo` too — a test fails if it is stale. Names that are not gettext strings (axes/otp_totp app names, TOTP device) and the default permission names («افزودن سفارش», renamed after every `migrate`) are set in `core/i18n.py`. Multi-line template comments must use `{% comment %}`: `{# #}` is single-line only and otherwise shows on the page.
+
 Template filters (available everywhere, no `{% load %}`): `fa_digits`, `fa_number`, `toman`, `jdate` (default `%Y/%m/%d`, e.g. `jdate:"%d %B %Y"`), `jdatetime`.
 
 Management commands: `backup_db`, `restore_db [--list] <file>`, `ensure_superuser`, `setup_schedules`, `seed_products [--no-images]`, `disable_2fa <mobile>`, `axes_reset` (django-axes).

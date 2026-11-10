@@ -1,6 +1,6 @@
-{# Discount code box of the cart page and checkout. Context: pricing (orders.discounts.CartPricing), where ("cart" | "checkout"),
+{% comment %}Discount code box of the cart page and checkout. Context: pricing (orders.discounts.CartPricing), where ("cart" | "checkout"),
    discount_input_error / discount_input_value (after a failed attempt). On checkout the response is the whole page; the
-   summary, gift choices and totals are picked out of it (hx-select / hx-select-oob). #}
+   summary, gift choices and totals are picked out of it (hx-select / hx-select-oob).{% endcomment %}
 {% url 'orders:discount' as discount_url %}
 <div id="discount-box" class="space-y-2">
   {% if pricing.code_text %}

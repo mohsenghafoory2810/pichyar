@@ -1,5 +1,5 @@
-{# The «write a review» area; also the HTMX response of reviews:submit (it replaces itself).
-   Context: product, user; optional form, own_review, thanks, notice. #}
+{% comment %}The «write a review» area; also the HTMX response of reviews:submit (it replaces itself).
+   Context: product, user; optional form, own_review, thanks, notice.{% endcomment %}
 <div id="review-form-area" class="mt-8" aria-live="polite">
   <h3 class="mb-3 text-lg font-bold">نظر شما دربارهٔ این محصول</h3>
   {% if thanks %}
