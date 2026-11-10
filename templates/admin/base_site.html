@@ -3,6 +3,10 @@
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
+{% block extrahead %}{{ block.super }}
+{% include "partials/favicon.html" %}
+{% endblock %}
+
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
 <link rel="stylesheet" href="{% static 'css/admin.css' %}">

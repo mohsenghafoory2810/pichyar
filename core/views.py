@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
+from django.templatetags.static import static
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
@@ -92,6 +93,16 @@ def age_confirm(request):
         httponly=True,
         samesite="Lax",
     )
+    return response
+
+
+def favicon(request):
+    """/favicon.ico (browsers and crawlers ask for it without reading the page): the uploaded
+    icon, else the default. A temporary redirect so a newly uploaded icon is picked up."""
+    site_settings = get_site_settings(request)
+    url = site_settings.favicon.url if site_settings.favicon else static("img/favicon.svg")
+    response = HttpResponseRedirect(url)
+    response["Cache-Control"] = "public, max-age=86400"
     return response
 
 

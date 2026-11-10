@@ -1,0 +1,9 @@
+{# Browser-tab icon: the one uploaded in site settings (stored as a 192px PNG), else the default. #}
+{% if site_settings.favicon %}
+  <link rel="icon" href="{{ site_settings.favicon.url }}" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="{{ site_settings.favicon.url }}">
+{% else %}
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'img/favicon-192.png' %}" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+{% endif %}

@@ -18,7 +18,7 @@ MERCHANT = "00000000-1111-2222-3333-444455556666"
 
 # Every setting the earlier parts introduced must be on the settings page.
 REQUIRED_FIELDS = [
-    "site_name", "logo", "phone", "support_info", "maintenance_mode", "maintenance_message",
+    "site_name", "logo", "favicon", "phone", "support_info", "maintenance_mode", "maintenance_message",
     "shipping_step_amount", "shipping_step_fee", "shipping_rounding", "gift_enabled", "gift_threshold",
     "admin_sms_enabled", "admin_sms_numbers", "sms_provider", "sms_api_key", "sms_sender",
     "online_payment_enabled", "payment_gateway", "gateway_merchant_id", "gateway_sandbox", "card_to_card_enabled",

@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from tinymce.models import HTMLField
 
-from catalog.images import validate_image_upload
+from catalog.images import process_favicon, validate_favicon_upload, validate_image_upload
 from seo.models import SEOFields
 
 from .html import sanitize_html
@@ -35,6 +35,14 @@ class SiteSettings(models.Model):
     site_name = models.CharField("نام سایت", max_length=100, default="پیچ‌یار")
     logo = models.ImageField(
         "لوگو", upload_to="site/", blank=True, validators=[validate_image_upload], help_text="JPG، PNG یا WebP"
+    )
+    favicon = models.ImageField(
+        "آیکون تب مرورگر (فاوآیکون)",
+        upload_to="site/",
+        blank=True,
+        validators=[validate_favicon_upload],
+        help_text="تصویر مربع و ساده (بهتر است دست‌کم ۱۹۲×۱۹۲ پیکسل) با فرمت PNG، ICO، JPG یا WebP. "
+        "کنار عنوان صفحه در تب مرورگر و روی صفحهٔ اصلی گوشی نمایش داده می‌شود. خالی باشد، آیکون پیش‌فرض سایت نمایش داده می‌شود.",
     )
     phone = models.CharField("تلفن پشتیبانی", max_length=30, blank=True)
     support_info = models.TextField(
@@ -165,6 +173,8 @@ class SiteSettings(models.Model):
 
     def save(self, *args, **kwargs):
         self.pk = 1
+        if self.favicon and not self.favicon._committed:  # a new upload: store it as a square PNG
+            self.favicon = process_favicon(self.favicon)
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):

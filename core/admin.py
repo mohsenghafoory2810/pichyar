@@ -87,7 +87,7 @@ class SiteSettingsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     form = SiteSettingsForm
     inlines = [BankCardInline]
     fieldsets = (
-        ("۱. مشخصات فروشگاه", {"fields": ("site_name", "logo", "phone", "support_info")}),
+        ("۱. مشخصات فروشگاه", {"fields": ("site_name", "logo", "favicon", "phone", "support_info")}),
         (
             "۲. تعمیر و نگهداری",
             {

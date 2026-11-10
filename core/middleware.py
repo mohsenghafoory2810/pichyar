@@ -6,13 +6,14 @@ from .utils import get_site_settings
 
 class MaintenanceModeMiddleware:
     """While maintenance mode is on, everyone except staff gets a 503 page.
-    Admin, health check, static and media stay reachable."""
+    Admin, health check, favicon, static and media stay reachable."""
 
     def __init__(self, get_response):
         self.get_response = get_response
         self.exempt_prefixes = (
             "/" + settings.ADMIN_URL,
             "/health",
+            "/favicon.ico",
             settings.STATIC_URL,
             settings.MEDIA_URL,
         )

@@ -9,6 +9,7 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path("tinymce/", include("tinymce.urls")),
     path("health", core_views.health, name="health"),
+    path("favicon.ico", core_views.favicon, name="favicon"),
     path("accounts/", include("accounts.urls")),
     path("cart/", include("cart.urls")),
     path("payments/", include("payments.urls")),

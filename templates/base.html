@@ -6,6 +6,7 @@
   <title>{% block title %}{{ page_meta.title|default:site_settings.site_name }}{% endblock %}</title>
   {% if page_meta.description %}<meta name="description" content="{% block meta_description %}{{ page_meta.description }}{% endblock %}">{% endif %}
   <meta name="robots" content="{% block robots %}{{ page_meta.robots }}{% endblock %}">
+  {% include "partials/favicon.html" %}
   {% block canonical %}{% if page_meta.canonical %}<link rel="canonical" href="{{ page_meta.canonical }}">{% endif %}{% endblock %}
   {% if site_settings.google_site_verification %}<meta name="google-site-verification" content="{{ site_settings.google_site_verification }}">{% endif %}
   {% if site_settings.bing_site_verification %}<meta name="msvalidate.01" content="{{ site_settings.bing_site_verification }}">{% endif %}

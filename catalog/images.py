@@ -45,6 +45,52 @@ def validate_image_file(file, limit):
         raise ValidationError("فقط تصویرهای JPG، PNG یا WebP پذیرفته می‌شوند.")
 
 
+# --- favicon (browser-tab icon) -------------------------------------------------------
+# SVG is not accepted: an uploaded SVG can carry scripts. Every upload is stored as a
+# FAVICON_SIZE px square PNG, which also serves as the apple-touch-icon.
+
+FAVICON_FORMATS = {"JPEG", "PNG", "WEBP", "ICO"}
+FAVICON_MIN_SIDE = 32
+FAVICON_SIZE = 192
+FAVICON_MAX_BYTES = 1024 * 1024
+
+
+def validate_favicon_upload(file):
+    """A JPG/PNG/WebP/ICO image of at most 1 MB that is square and at least 32 px."""
+    if file.size > FAVICON_MAX_BYTES:
+        raise ValidationError("حجم آیکون نباید بیشتر از ۱ مگابایت باشد.")
+    try:
+        file.seek(0)
+        with Image.open(file) as img:
+            fmt, (width, height) = img.format, img.size
+            img.verify()
+    except (UnidentifiedImageError, OSError, SyntaxError):
+        raise ValidationError("این فایل تصویر معتبری نیست.")
+    finally:
+        file.seek(0)
+    if fmt not in FAVICON_FORMATS:
+        raise ValidationError("فقط تصویرهای PNG، ICO، JPG یا WebP پذیرفته می‌شوند.")
+    if abs(width - height) > max(width, height) * 0.05:
+        raise ValidationError(
+            f"آیکون باید مربع باشد (طول و عرض برابر). تصویر شما {fa_digits(width)}×{fa_digits(height)} پیکسل است."
+        )
+    if min(width, height) < FAVICON_MIN_SIDE:
+        raise ValidationError(f"آیکون باید دست‌کم {fa_digits(FAVICON_MIN_SIDE)}×{fa_digits(FAVICON_MIN_SIDE)} پیکسل باشد.")
+
+
+def process_favicon(field_file):
+    """Returns a ContentFile: a FAVICON_SIZE px square PNG (largest frame of an ICO)."""
+    field_file.seek(0)
+    with Image.open(field_file) as img:
+        if img.format == "ICO":
+            img.size = max(img.info.get("sizes") or [img.size])
+        img = ImageOps.exif_transpose(img).convert("RGBA")
+        img = ImageOps.fit(img, (FAVICON_SIZE, FAVICON_SIZE), Image.Resampling.LANCZOS)
+        out = BytesIO()
+        img.save(out, "PNG", optimize=True)
+    return ContentFile(out.getvalue(), name="favicon.png")
+
+
 def process_product_image(field_file):
     """Returns a ContentFile: EXIF-rotated, at most MAX_SIDE px, WebP, metadata stripped."""
     field_file.seek(0)
