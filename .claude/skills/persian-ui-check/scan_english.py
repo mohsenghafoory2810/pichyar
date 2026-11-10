@@ -24,7 +24,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 # Latin words that are fine in Persian UI text: technical terms, brands, formats, file names.
 ALLOWED_WORDS = {
     "alt", "api", "bing", "canonical", "ccbot", "claudebot", "command", "content", "control", "cron",
-    "description", "excel", "extended", "google", "gptbot", "html", "htmx", "http", "https", "ipv4", "ipv6",
+    "description", "excel", "extended", "google", "gptbot", "html", "htmx", "http", "https", "ico", "ipv4", "ipv6",
     "jpg", "jpeg", "json", "llms", "mac", "microsoft", "authenticator", "msvalidate", "noindex",
     "organization", "perplexitybot", "pichyar", "png", "robots", "search", "console", "seo", "sha256",
     "sitemap", "sku", "slug", "sms", "svg", "title", "totp", "txt", "url", "utc", "webmaster", "webp",
