@@ -33,3 +33,10 @@
 		reverse_proxy app:8000
 	}
 }
+
+# www.<domain> → <domain> with a permanent (301) redirect, so search engines see one site and
+# links to the www form are not lost. Needs a DNS record for www pointing to this server
+# (Caddy then gets its certificate automatically).
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}
