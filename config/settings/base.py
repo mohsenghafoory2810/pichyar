@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "seo",
     "blog",
     "reviews",
+    "support",
 ]
 
 MIDDLEWARE = [

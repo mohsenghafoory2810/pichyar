@@ -1,0 +1,6 @@
+{% with s=ticket.status %}
+<span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold
+  {% if s == 'answered' %}bg-success/15 text-success
+  {% elif s == 'closed' %}bg-ink/5 text-ink-soft
+  {% else %}bg-gold/25 text-ink{% endif %}">{{ ticket.get_status_display }}</span>
+{% endwith %}

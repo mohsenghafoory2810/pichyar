@@ -1,0 +1,40 @@
+{% extends "accounts/panel_base.html" %}
+
+{% block title %}پیام به پشتیبانی | {{ site_settings.site_name }}{% endblock %}
+
+{% block panel %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-2xl font-extrabold">پیام به پشتیبانی</h1>
+  {% if enabled %}<a href="{% url 'support:new' %}" class="btn-cta">پیام جدید</a>{% endif %}
+</div>
+{% if not enabled %}<p class="alert-info mb-4">ارسال پیام به پشتیبانی از طریق سایت در حال حاضر فعال نیست؛ گفتگوهای قبلی را همچنان می‌توانید ببینید.</p>{% endif %}
+{% if tickets %}
+<ul class="space-y-3">
+  {% for ticket in tickets %}
+  <li>
+    <a href="{{ ticket.get_absolute_url }}" class="card flex flex-wrap items-center justify-between gap-3 p-4 hover:border-ink/30">
+      <div class="min-w-0">
+        <p class="font-bold [overflow-wrap:anywhere]">
+          {% if ticket.customer_unread %}<span class="me-1 inline-block h-2 w-2 rounded-full bg-gold align-middle" aria-hidden="true"></span><span class="sr-only">پاسخ جدید: </span>{% endif %}{{ ticket.subject }}
+        </p>
+        <p class="mt-1 text-sm text-ink-soft">
+          پیام شمارهٔ {{ ticket.pk|fa_digits }} · آخرین پیام: {{ ticket.last_message_at|jdate:"%d %B %Y - %H:%M" }}
+          {% if ticket.order %} · سفارش <bdi dir="ltr">{{ ticket.order.number|fa_digits }}</bdi>{% endif %}
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        {% if ticket.customer_unread %}<span class="inline-block rounded-full bg-gold px-2.5 py-0.5 text-xs font-bold text-ink">پاسخ جدید</span>{% endif %}
+        {% include "support/_status_badge.html" %}
+      </div>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="card px-6 py-10 text-center">
+  <p>هنوز پیامی برای پشتیبانی نفرستاده‌اید.</p>
+  {% if enabled %}<p class="mt-2 text-sm text-ink-soft">پرسش یا مشکلی دربارهٔ سفارش‌ها و محصولات دارید؟ برای ما بنویسید.</p>
+  <a href="{% url 'support:new' %}" class="btn-secondary mt-4">پیام جدید</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

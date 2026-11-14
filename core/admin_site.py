@@ -26,6 +26,7 @@ ADMIN_GROUPS = [
             ("orders", "giftpoolitem", None),
         ],
     ),
+    ("پشتیبانی", [("support", "ticket", None)]),
     ("محصولات", [("catalog", "product", None), ("catalog", "category", None)]),
     ("نظرهای مشتریان", [("reviews", "review", None)]),
     (
@@ -111,10 +112,12 @@ class ShopAdminSite(admin.AdminSite):
     def index(self, request, extra_context=None):
         from orders.reports import dashboard
         from reviews.models import Review
+        from support.models import Ticket
 
         context = {
             "dashboard": dashboard(request.user),
             "pending_reviews_count": Review.objects.filter(status=Review.Status.PENDING).count(),
+            "waiting_tickets_count": Ticket.objects.filter(status=Ticket.Status.WAITING).count(),
             **(extra_context or {}),
         }
         return super().index(request, context)

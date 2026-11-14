@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load support_tags %}
 
 {% block content %}
 <div class="grid gap-6 md:grid-cols-4">
@@ -7,6 +8,10 @@
     <ul class="flex gap-1 overflow-x-auto md:flex-col">
       <li><a href="{% url 'accounts:orders' %}" class="block whitespace-nowrap rounded-xl px-3 py-2 {% if tab == 'orders' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if tab == 'orders' %} aria-current="page"{% endif %}>سفارش‌ها</a></li>
       <li><a href="{% url 'accounts:addresses' %}" class="block whitespace-nowrap rounded-xl px-3 py-2 {% if tab == 'addresses' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if tab == 'addresses' %} aria-current="page"{% endif %}>نشانی‌ها</a></li>
+      {% support_tab user as support %}
+      {% if site_settings.support_tickets_enabled or support.tickets %}
+      <li><a href="{% url 'support:list' %}" class="flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 {% if tab == 'support' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if tab == 'support' %} aria-current="page"{% endif %}>پیام به پشتیبانی{% if support.unread %} <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-xs font-bold text-ink">{{ support.unread|fa_digits }}<span class="sr-only"> پاسخ خوانده‌نشده</span></span>{% endif %}</a></li>
+      {% endif %}
       <li><a href="{% url 'accounts:profile' %}" class="block whitespace-nowrap rounded-xl px-3 py-2 {% if tab == 'profile' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if tab == 'profile' %} aria-current="page"{% endif %}>مشخصات</a></li>
       <li>
         <form method="post" action="{% url 'accounts:logout' %}">

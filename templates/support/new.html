@@ -1,0 +1,25 @@
+{% extends "accounts/panel_base.html" %}
+
+{% block title %}پیام جدید به پشتیبانی | {{ site_settings.site_name }}{% endblock %}
+
+{% block panel %}
+<a href="{% url 'support:list' %}" class="link mb-4 inline-block text-sm">بازگشت به پیام‌ها</a>
+<h1 class="mb-4 text-2xl font-extrabold">پیام جدید به پشتیبانی</h1>
+{% if site_settings.support_intro %}<div class="alert-info mb-4 leading-7">{{ site_settings.support_intro|linebreaksbr }}</div>{% endif %}
+<form method="post" action="{% url 'support:new' %}" class="card max-w-xl space-y-4 p-4" novalidate>
+  {% csrf_token %}
+  {% for error in form.non_field_errors %}<p class="alert-error" role="alert">{{ error }}</p>{% endfor %}
+  {% include "partials/form_field.html" with field=form.subject %}
+  {% if form.order.field.queryset.exists %}{% include "partials/form_field.html" with field=form.order %}{% endif %}
+  {% include "partials/form_field.html" with field=form.text %}
+  {# Honeypot: off-screen and hidden from assistive tech; people leave it empty. #}
+  <div class="sr-only" aria-hidden="true">
+    <label for="{{ form.website.id_for_label }}">{{ form.website.label }}</label>
+    {{ form.website }}
+  </div>
+  <div class="flex gap-3">
+    <button type="submit" class="btn-cta">ارسال پیام</button>
+    <a href="{% url 'support:list' %}" class="btn-secondary">انصراف</a>
+  </div>
+</form>
+{% endblock %}

@@ -28,6 +28,11 @@
       <div class="dash-tile-value">{{ pending_reviews_count|fa_number|default:"۰" }}</div>
       <div class="dash-tile-sub">بررسی نظرها ←</div>
     </a>
+    <a class="dash-tile dash-tile-action{% if waiting_tickets_count %} is-hot{% endif %}" href="{% url 'admin:support_ticket_changelist' %}?status__exact=waiting">
+      <div class="dash-tile-label">پیام‌های پشتیبانی بی‌پاسخ</div>
+      <div class="dash-tile-value">{{ waiting_tickets_count|fa_number|default:"۰" }}</div>
+      <div class="dash-tile-sub">پاسخ به پیام‌ها ←</div>
+    </a>
   </div>
 
   <div class="module dash-chart">

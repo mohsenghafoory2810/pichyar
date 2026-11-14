@@ -15,6 +15,7 @@ urlpatterns = [
     path("payments/", include("payments.urls")),
     path("blog/", include("blog.urls")),
     path("reviews/", include("reviews.urls")),
+    path("support/", include("support.urls")),
     path("", include("seo.urls")),
     path("", include("orders.urls")),
     path("", include("catalog.urls")),

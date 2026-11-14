@@ -28,6 +28,16 @@ TEMPLATES = {
         "vars": ("order_text", *ORDER_VARS),
         "text": "{order_text}",
     },
+    "support_reply": {
+        "label": "پاسخ پشتیبانی (به مشتری)",
+        "vars": ("ticket_subject", "site_name"),
+        "text": "پاسخ پیام شما در {site_name} ثبت شد.\nبرای دیدن پاسخ به حساب کاربری خود سر بزنید.",
+    },
+    "admin_support_message": {
+        "label": "پیام جدید پشتیبانی (به مدیر)",
+        "vars": ("customer", "ticket_subject", "text_preview", "site_name"),
+        "text": "پیام جدید پشتیبانی از {customer}\nموضوع: {ticket_subject}\n{text_preview}",
+    },
 }
 
 KEY_CHOICES = [(key, t["label"]) for key, t in TEMPLATES.items()]

@@ -1,0 +1,51 @@
+{% extends "accounts/panel_base.html" %}
+
+{% block title %}{{ ticket.subject }} | پیام به پشتیبانی | {{ site_settings.site_name }}{% endblock %}
+
+{% block panel %}
+<a href="{% url 'support:list' %}" class="link mb-4 inline-block text-sm">بازگشت به پیام‌ها</a>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div class="min-w-0">
+    <h1 class="text-2xl font-extrabold [overflow-wrap:anywhere]">{{ ticket.subject }}</h1>
+    <p class="mt-1 text-sm text-ink-soft">
+      پیام شمارهٔ {{ ticket.pk|fa_digits }} · {{ ticket.created_at|jdate:"%d %B %Y" }}
+      {% if ticket.order %} · <a class="link" href="{% url 'accounts:order_detail' ticket.order.number %}">سفارش <bdi dir="ltr">{{ ticket.order.number|fa_digits }}</bdi></a>{% endif %}
+    </p>
+  </div>
+  {% include "support/_status_badge.html" %}
+</div>
+
+<ol class="space-y-3" aria-label="گفتگو با پشتیبانی">
+  {% for message in thread %}
+  <li class="flex {% if message.is_staff_reply %}justify-end{% endif %}">
+    <div class="max-w-[85%] rounded-2xl border p-3 {% if message.is_staff_reply %}border-gold/40 bg-gold/15{% else %}border-line bg-surface{% endif %}">
+      <p class="mb-1 text-xs font-bold {% if message.is_staff_reply %}text-ink{% else %}text-ink-soft{% endif %}">
+        {% if message.is_staff_reply %}پشتیبانی {{ site_settings.site_name }}{% else %}شما{% endif %}
+        <span class="font-normal text-ink-soft">· {{ message.created_at|jdate:"%d %B %Y - %H:%M" }}</span>
+      </p>
+      <p class="leading-7 [overflow-wrap:anywhere]">{{ message.text|linebreaksbr }}</p>
+    </div>
+  </li>
+  {% endfor %}
+</ol>
+
+<div id="reply" class="mt-6">
+  {% if can_reply %}
+  <form method="post" action="{{ ticket.get_absolute_url }}" class="card space-y-4 p-4" novalidate>
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<p class="alert-error" role="alert">{{ error }}</p>{% endfor %}
+    {% include "partials/form_field.html" with field=form.text %}
+    {# Honeypot: off-screen and hidden from assistive tech; people leave it empty. #}
+    <div class="sr-only" aria-hidden="true">
+      <label for="{{ form.website.id_for_label }}">{{ form.website.label }}</label>
+      {{ form.website }}
+    </div>
+    <button type="submit" class="btn-cta">ارسال</button>
+  </form>
+  {% elif not enabled %}
+  <p class="alert-info">ارسال پیام به پشتیبانی از طریق سایت در حال حاضر فعال نیست.</p>
+  {% else %}
+  <p class="alert-info">این گفتگو بسته شده است. اگر پرسش دیگری دارید، <a class="link" href="{% url 'support:new' %}">یک پیام جدید بفرستید</a>.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -187,7 +187,21 @@ class StorefrontMessengerTests(TestCase):
 
     def test_shown_for_support_tickets_alone(self):
         self.configure(phone="", support_tickets_enabled=True)
-        self.assertContains(self.client.get("/"), 'id="support-fab"')
+        response = self.client.get("/")
+        self.assertContains(response, 'id="support-fab"')
+        self.assertContains(response, f'href="{reverse("support:new")}"')
+        self.assertContains(response, "پیام به پشتیبانی در سایت")
+
+    def test_ticket_link_hidden_when_tickets_disabled(self):
+        self.configure(telegram_id="pichyar_support", support_tickets_enabled=False)
+        response = self.client.get("/")
+        self.assertContains(response, 'id="support-fab"')
+        self.assertNotContains(response, 'data-messenger="ticket"')
+
+    def test_guest_ticket_link_leads_to_login(self):
+        response = self.client.get(reverse("support:new"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("accounts:login"), response["Location"])
 
     def test_footer_links(self):
         self.configure(phone="", whatsapp_number="989123456789", bale_id="pichyar")

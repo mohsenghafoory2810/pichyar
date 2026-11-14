@@ -12,7 +12,12 @@ keeps aria-expanded in sync and closes it with Escape (focus back on the button)
   <div id="support-fab-panel" class="support-fab__panel" role="group" hidden aria-label="راه‌های تماس با ما">
     <p class="support-fab__title">راه‌های تماس با ما</p>
     <ul>
-      {# SUPPORT_TICKET_LINK #}
+      {% if site_settings.support_tickets_enabled %}
+        <li><a href="{% url 'support:new' %}" class="support-fab__link" data-messenger="ticket">
+          {% include "partials/messenger_icon.html" with key="chat" %}
+          <span>پیام به پشتیبانی در سایت</span>
+        </a></li>
+      {% endif %}
       {% for link in site_settings.messenger_links %}
         <li><a href="{{ link.url }}" class="support-fab__link" target="_blank" rel="noopener" data-messenger="{{ link.key }}">
           {% include "partials/messenger_icon.html" with key=link.key %}
