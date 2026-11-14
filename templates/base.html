@@ -51,6 +51,8 @@
     </main>
     {% include "partials/footer.html" %}
     {% block bottom_bar %}{% include "partials/bottom_bar.html" %}{% endblock %}
+    {# Inside #page, so it is inert while the age gate is shown. #}
+    {% include "partials/support_button.html" %}
   </div>
   {% if not age_verified %}{% include "partials/age_gate.html" %}{% endif %}
   {% if site_settings.analytics_snippet %}{{ site_settings.analytics_snippet|safe }}{% endif %}

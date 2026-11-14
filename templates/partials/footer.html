@@ -32,11 +32,19 @@
         {% endfor %}
       </ul>
     </nav>
-    {% if site_settings.phone or site_settings.social_urls %}
+    {% if site_settings.phone or site_settings.social_urls or site_settings.messenger_links %}
     <div class="text-sm">
       {% if site_settings.phone %}
         <p class="text-ink-soft">تلفن پشتیبانی</p>
         <a href="tel:{{ site_settings.phone }}" class="mt-1 inline-block text-lg font-bold" dir="ltr">{{ site_settings.phone|fa_digits }}</a>
+      {% endif %}
+      {% if site_settings.messenger_links %}
+        <p class="mt-3 text-ink-soft">پیام‌رسان‌ها</p>
+        <ul class="mt-1 space-y-1">
+          {% for link in site_settings.messenger_links %}
+            <li><a href="{{ link.url }}" class="messenger-link text-ink-soft hover:text-ink hover:underline" target="_blank" rel="noopener" data-messenger="{{ link.key }}">{% include "partials/messenger_icon.html" with key=link.key %}{{ link.name }}</a></li>
+          {% endfor %}
+        </ul>
       {% endif %}
       {% if site_settings.social_urls %}
         <ul class="mt-3 space-y-1" dir="ltr">

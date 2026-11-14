@@ -43,7 +43,7 @@ class SiteSettingsAdminTests(TestCase):
             "shipping_rounding": s.shipping_rounding, "gift_enabled": "on", "gift_threshold": s.gift_threshold,
             "online_payment_enabled": "on", "payment_gateway": s.payment_gateway, "card_to_card_enabled": "on",
             "sms_provider": s.sms_provider, "sms_sender": "", "admin_sms_enabled": "on", "admin_sms_numbers": "",
-            "sms_api_key": "", "gateway_merchant_id": "",
+            "sms_api_key": "", "gateway_merchant_id": "", "messenger_button_position": "left",
             "cards-TOTAL_FORMS": "1", "cards-INITIAL_FORMS": "0", "cards-MIN_NUM_FORMS": "0", "cards-MAX_NUM_FORMS": "1000",
             "cards-0-card_number": "۶۰۳۷-۹۹۱۲-۳۴۵۶-۷۸۹۰", "cards-0-holder_name": "فروشگاه", "cards-0-bank_name": "ملی",
             "cards-0-is_active": "on", "cards-0-order": "0",

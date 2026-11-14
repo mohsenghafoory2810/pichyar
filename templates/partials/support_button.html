@@ -1,0 +1,32 @@
+{% comment %}
+Floating support button (bottom corner, above the mobile bottom bar). app.js opens/closes the panel,
+keeps aria-expanded in sync and closes it with Escape (focus back on the button) or a click outside.
+{% endcomment %}
+{% if site_settings.support_button_visible %}
+{% with label=site_settings.messenger_button_label|default:"پشتیبانی" %}
+<div id="support-fab" class="support-fab support-fab--{{ site_settings.messenger_button_position|default:'left' }}" data-support-fab>
+  <button type="button" class="support-fab__toggle" aria-expanded="false" aria-controls="support-fab-panel" aria-label="{{ label }}: راه‌های تماس با ما">
+    <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><path d="M4 13h3v6H5a1 1 0 0 1-1-1Zm16 0h-3v6h2a1 1 0 0 0 1-1Z"/></svg>
+    <span>{{ label }}</span>
+  </button>
+  <div id="support-fab-panel" class="support-fab__panel" role="group" hidden aria-label="راه‌های تماس با ما">
+    <p class="support-fab__title">راه‌های تماس با ما</p>
+    <ul>
+      {# SUPPORT_TICKET_LINK #}
+      {% for link in site_settings.messenger_links %}
+        <li><a href="{{ link.url }}" class="support-fab__link" target="_blank" rel="noopener" data-messenger="{{ link.key }}">
+          {% include "partials/messenger_icon.html" with key=link.key %}
+          <span>گفتگو در {{ link.name }}</span>
+        </a></li>
+      {% endfor %}
+      {% if site_settings.phone %}
+        <li><a href="tel:{{ site_settings.phone }}" class="support-fab__link" data-messenger="phone">
+          {% include "partials/messenger_icon.html" with key="phone" %}
+          <span>تماس تلفنی <span dir="ltr">{{ site_settings.phone|fa_digits }}</span></span>
+        </a></li>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+{% endwith %}
+{% endif %}

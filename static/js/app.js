@@ -39,8 +39,40 @@
     if (confirm) confirm.focus();
   }
 
+  /* Floating support button: the button shows/hides the panel (aria-expanded kept in sync);
+     Escape closes it and puts focus back on the button, a click outside closes it. */
+  function initSupportButton() {
+    var box = document.querySelector("[data-support-fab]");
+    if (!box) return;
+    var toggle = box.querySelector(".support-fab__toggle");
+    var panel = document.getElementById(toggle.getAttribute("aria-controls"));
+    if (!panel) return;
+    function setOpen(open) {
+      panel.hidden = !open;
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    toggle.addEventListener("click", function () {
+      var open = panel.hidden;
+      setOpen(open);
+      if (open) {
+        var first = panel.querySelector("a");
+        if (first) first.focus();
+      }
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !panel.hidden) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+    document.addEventListener("click", function (e) {
+      if (!panel.hidden && !box.contains(e.target)) setOpen(false);
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     initAgeGate();
+    initSupportButton();
     initCountdowns(document);
   });
   document.addEventListener("htmx:load", function (e) { initCountdowns(e.detail.elt); });

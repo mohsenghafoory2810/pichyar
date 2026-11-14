@@ -1,4 +1,5 @@
 import re
+from urllib.parse import quote
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
@@ -27,6 +28,76 @@ def sms_provider_choices():
 
 
 _ADMIN_NUMBER_SEPARATORS = re.compile(r"[\n,،;]+")
+
+# Invisible direction marks and joiners that sneak in when a number or ID is pasted from a Persian text.
+_INVISIBLE_CHARS = re.compile("[‌‍‎‏‪-‮⁦-⁩﻿]")
+_URL_PREFIX = re.compile(r"^(?:https?://)?(?:www\.)?", re.IGNORECASE)
+
+
+def normalize_whatsapp_number(value):
+    """'۰۹۱۲ ۳۴۵ ۶۷۸۹', '+98 912…', '0098912…' or 'wa.me/98912…' -> '989123456789' (international digits only)."""
+    value = _INVISIBLE_CHARS.sub("", latin_digits(value)).strip()
+    if not value:
+        return ""
+    link = _URL_PREFIX.sub("", value)
+    phone_param = re.search(r"[?&]phone=([^&#]*)", link)
+    if phone_param:  # api.whatsapp.com/send?phone=98912…
+        link = phone_param.group(1)
+    elif re.match(r"wa\.me/", link, re.IGNORECASE):
+        link = re.split(r"[?#]", link[len("wa.me/"):])[0]
+    number = re.sub(r"[\s\-–().]", "", link).rstrip("/")
+    if number.startswith("+"):
+        number = number[1:]
+    elif number.startswith("00"):
+        number = number[2:]
+    elif number.startswith("0"):  # Iranian number: 0912… -> 98912…
+        number = "98" + number[1:]
+    elif len(number) == 10 and number.startswith("9"):  # 912… without the leading 0
+        number = "98" + number
+    if not re.fullmatch(r"\d{10,15}", number):
+        raise ValidationError("شمارهٔ واتساپ معتبر نیست. مثلاً ۰۹۱۲۳۴۵۶۷۸۹ یا ‎+98 912 345 6789‎ وارد کنید.")
+    return number
+
+
+def _normalize_username(value, domains, min_length, error):
+    """'@name', 'name', 'https://<domain>/name' -> 'name'."""
+    value = _INVISIBLE_CHARS.sub("", latin_digits(value)).strip()
+    if not value:
+        return ""
+    username = _URL_PREFIX.sub("", value)
+    for domain in domains:
+        if username.lower().startswith(domain + "/"):
+            username = username[len(domain) + 1:]
+            break
+    username = re.split(r"[/?#]", username)[0].lstrip("@")
+    if not re.fullmatch(rf"[A-Za-z][A-Za-z0-9_]{{{min_length - 1},31}}", username):
+        raise ValidationError(error)
+    return username
+
+
+def normalize_telegram_id(value):
+    return _normalize_username(
+        value,
+        ("t.me", "telegram.me", "telegram.dog"),
+        5,
+        "آیدی تلگرام معتبر نیست: ۵ تا ۳۲ حرف انگلیسی، رقم یا _ که با حرف شروع شود؛ مثلاً @pichyar_support یا t.me/pichyar_support.",
+    )
+
+
+def normalize_bale_id(value):
+    return _normalize_username(
+        value,
+        ("ble.ir",),
+        3,
+        "آیدی بله معتبر نیست: ۳ تا ۳۲ حرف انگلیسی، رقم یا _ که با حرف شروع شود؛ مثلاً @pichyar یا ble.ir/pichyar.",
+    )
+
+
+_MESSENGER_NORMALIZERS = (
+    ("whatsapp_number", normalize_whatsapp_number),
+    ("telegram_id", normalize_telegram_id),
+    ("bale_id", normalize_bale_id),
+)
 
 
 class SiteSettings(models.Model):
@@ -164,6 +235,50 @@ class SiteSettings(models.Model):
         help_text="GPTBot، ClaudeBot، PerplexityBot، Google-Extended و CCBot. خاموش باشد، در robots.txt مسدود می‌شوند.",
     )
 
+    # Support: messages inside the site (support app) and messenger links (Bale, WhatsApp, Telegram)
+    support_tickets_enabled = models.BooleanField(
+        "پیام به پشتیبانی در سایت",
+        default=True,
+        help_text="مشتریان واردشده می‌توانند از «حساب کاربری ← پیام به پشتیبانی» پیام بفرستند و پاسخ را همان‌جا ببینند.",
+    )
+    support_intro = models.TextField(
+        "متن راهنمای صفحهٔ پیام به پشتیبانی",
+        blank=True,
+        help_text="مثلاً ساعات پاسخگویی. بالای فرم ارسال پیام نمایش داده می‌شود.",
+    )
+    support_admin_sms_enabled = models.BooleanField(
+        "پیامک پیام جدید پشتیبانی به مدیر",
+        default=True,
+        help_text="به شماره‌های «پیامک سفارش جدید به مدیر» فرستاده می‌شود.",
+    )
+    support_reply_sms_enabled = models.BooleanField(
+        "پیامک پاسخ پشتیبانی به مشتری", default=True, help_text="وقتی به پیام مشتری پاسخ می‌دهید، با پیامک خبردار می‌شود."
+    )
+    whatsapp_number = models.CharField(
+        "شمارهٔ واتساپ", max_length=20, blank=True, help_text="مثلاً ۰۹۱۲۳۴۵۶۷۸۹ یا ‎+98912…‎. خالی = لینک واتساپ نمایش داده نمی‌شود."
+    )
+    whatsapp_message = models.CharField(
+        "پیام آمادهٔ واتساپ",
+        max_length=200,
+        blank=True,
+        help_text="اختیاری؛ متنی که هنگام باز شدن گفتگو در واتساپ از قبل نوشته شده است.",
+    )
+    telegram_id = models.CharField(
+        "آیدی تلگرام", max_length=100, blank=True, help_text="مثلاً @pichyar_support یا t.me/pichyar_support. خالی = نمایش داده نمی‌شود."
+    )
+    bale_id = models.CharField(
+        "آیدی بله", max_length=100, blank=True, help_text="مثلاً @pichyar یا ble.ir/pichyar. خالی = نمایش داده نمی‌شود."
+    )
+    messenger_button_enabled = models.BooleanField(
+        "دکمهٔ شناور پشتیبانی",
+        default=True,
+        help_text="دکمه‌ای گوشهٔ پایین صفحه که لینک پیام‌رسان‌ها و پیام در سایت را باز می‌کند.",
+    )
+    messenger_button_position = models.CharField(
+        "جای دکمهٔ شناور", max_length=5, choices=[("left", "پایین چپ"), ("right", "پایین راست")], default="left"
+    )
+    messenger_button_label = models.CharField("عنوان دکمهٔ شناور", max_length=40, default="پشتیبانی", blank=True)
+
     class Meta:
         verbose_name = "تنظیمات سایت"
         verbose_name_plural = "تنظیمات سایت"
@@ -189,9 +304,28 @@ class SiteSettings(models.Model):
         return self.cards.filter(is_active=True)
 
     def clean_fields(self, exclude=None):
-        super().clean_fields(exclude)
-        if exclude and "admin_sms_numbers" in exclude:
-            return
+        errors = {}
+        try:
+            super().clean_fields(exclude)
+        except ValidationError as e:
+            errors = e.update_error_dict(errors)
+        skip = set(exclude or ()) | set(errors)
+        if "admin_sms_numbers" not in skip:
+            try:
+                self._clean_admin_sms_numbers()
+            except ValidationError as e:
+                errors = e.update_error_dict(errors)
+        for name, normalize in _MESSENGER_NORMALIZERS:
+            if name in skip:
+                continue
+            try:
+                setattr(self, name, normalize(getattr(self, name)))
+            except ValidationError as e:
+                errors.setdefault(name, []).extend(e.messages)
+        if errors:
+            raise ValidationError(errors)
+
+    def _clean_admin_sms_numbers(self):
         from accounts.validators import normalize_mobile
 
         numbers, bad = [], []
@@ -218,6 +352,36 @@ class SiteSettings(models.Model):
     @property
     def social_urls(self):
         return [u.strip() for u in (self.social_links or "").splitlines() if u.strip().startswith("https://")]
+
+    @property
+    def whatsapp_url(self):
+        if not self.whatsapp_number:
+            return ""
+        url = f"https://wa.me/{self.whatsapp_number}"
+        if self.whatsapp_message.strip():
+            url += "?text=" + quote(self.whatsapp_message.strip(), safe="")
+        return url
+
+    @property
+    def telegram_url(self):
+        return f"https://t.me/{self.telegram_id}" if self.telegram_id else ""
+
+    @property
+    def bale_url(self):
+        return f"https://ble.ir/{self.bale_id}" if self.bale_id else ""
+
+    @property
+    def messenger_links(self):
+        """Configured messengers, in display order: [{'key': 'bale', 'name': 'بله', 'url': …}, …]."""
+        links = (("bale", "بله", self.bale_url), ("whatsapp", "واتساپ", self.whatsapp_url), ("telegram", "تلگرام", self.telegram_url))
+        return [{"key": key, "name": name, "url": url} for key, name, url in links if url]
+
+    @property
+    def support_button_visible(self):
+        """The floating support button is shown only when it has something to offer."""
+        return self.messenger_button_enabled and bool(
+            self.messenger_links or self.phone.strip() or self.support_tickets_enabled
+        )
 
     @property
     def admin_mobiles(self):

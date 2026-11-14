@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django_q.models import Failure, OrmQ, Schedule, Success
 from jalali_date.admin import ModelAdminJalaliMixin, TabularInlineJalaliMixin
 
@@ -154,7 +154,40 @@ class SiteSettingsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                 "description": "نقشهٔ سایت: /sitemap.xml — قواعد خزنده‌ها: /robots.txt — معرفی سایت برای هوش مصنوعی: /llms.txt",
             },
         ),
+        (
+            "۱۰. پشتیبانی و پیام‌رسان‌ها",
+            {
+                "fields": (
+                    "support_tickets_enabled",
+                    "support_intro",
+                    "support_admin_sms_enabled",
+                    "support_reply_sms_enabled",
+                    "whatsapp_number",
+                    "whatsapp_message",
+                    "telegram_id",
+                    "bale_id",
+                    "messenger_links_preview",
+                    "messenger_button_enabled",
+                    "messenger_button_position",
+                    "messenger_button_label",
+                ),
+                "description": "شمارهٔ واتساپ و آیدی‌ها را به هر شکلی وارد کنید (با @، لینک یا رقم فارسی)؛ هنگام ذخیره یکدست می‌شوند. "
+                "لینک پیام‌رسان‌ها در پایین صفحه‌های سایت و در دکمهٔ شناور پشتیبانی نمایش داده می‌شود؛ هر کدام خالی بماند، نمایش داده نمی‌شود.",
+            },
+        ),
     )
+    readonly_fields = ("messenger_links_preview",)
+
+    @admin.display(description="پیش‌نمایش لینک‌ها")
+    def messenger_links_preview(self, obj):
+        links = obj.messenger_links if obj else []
+        if not links:
+            return "هنوز هیچ پیام‌رسانی وارد نشده است."
+        return format_html_join(
+            format_html("<br>"),
+            '{}: <a href="{}" target="_blank" rel="noopener" dir="ltr">{}</a>',
+            ((link["name"], link["url"], link["url"]) for link in links),
+        )
 
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()

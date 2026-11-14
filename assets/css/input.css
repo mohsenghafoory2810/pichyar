@@ -51,4 +51,41 @@
   .rich-text ul { @apply mb-4 list-disc ps-6; }
   .rich-text ol { @apply mb-4 list-decimal ps-6; }
   .rich-text a { @apply font-medium text-navy underline underline-offset-4; }
+  /* Floating support button (templates/partials/support_button.html). Plain CSS, so it also works
+     with a stale local app.css; on mobile it sits above the fixed bottom bar (md:hidden, ~64px). */
+  .support-fab { position: fixed; bottom: 5rem; z-index: 35; font-size: 0.875rem; }
+  .support-fab--left { left: 1rem; }
+  .support-fab--right { right: 1rem; }
+  .support-fab__toggle {
+    display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.1rem; border-radius: 9999px;
+    font: inherit; background: var(--c-ink); color: var(--c-cream); font-weight: 700; cursor: pointer;
+    border: 0; box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
+  }
+  .support-fab__toggle:hover { background: var(--c-ink-soft); }
+  .support-fab__panel {
+    position: absolute; bottom: calc(100% + 0.75rem); width: 16rem; max-width: calc(100vw - 2rem);
+    padding: 0.5rem; border: 1px solid var(--c-border); border-radius: 1rem; background: var(--c-surface);
+    color: var(--c-ink); box-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
+  }
+  .support-fab--left .support-fab__panel { left: 0; }
+  .support-fab--right .support-fab__panel { right: 0; }
+  .support-fab__title { padding: 0.25rem 0.75rem 0.5rem; font-weight: 700; color: var(--c-ink-soft); }
+  .support-fab__link {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: 0.75rem;
+    color: var(--c-ink); font-weight: 500; text-decoration: none;
+  }
+  .support-fab__link:hover { background: var(--c-cream); }
+  .messenger-icon {
+    display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 2rem; height: 2rem;
+    border-radius: 9999px; background: var(--c-navy); color: #fff;
+  }
+  .messenger-icon svg { width: 1.25rem; height: 1.25rem; }
+  .messenger-icon--bale { background: #00a58e; }
+  .messenger-icon--whatsapp { background: #1fa855; }
+  .messenger-icon--telegram { background: #229ed9; }
+  .messenger-link { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .messenger-link .messenger-icon { width: 1.5rem; height: 1.5rem; }
+  .messenger-link .messenger-icon svg { width: 1rem; height: 1rem; }
+  @media (min-width: 48rem) { .support-fab { bottom: 1.5rem; } }
+  @media print { .support-fab { display: none; } }
 }
