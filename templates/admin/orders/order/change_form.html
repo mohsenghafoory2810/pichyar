@@ -52,7 +52,7 @@
     {% if can_resend_admin_sms %}
     <div class="order-action">
       <form method="post" action="{% url 'admin:orders_order_action' o.pk 'resend_admin_sms' %}">{% csrf_token %}
-        <button type="submit" class="button">ارسال مجدد پیامک ادمین</button>
+        <button type="submit" class="button">ارسال مجدد پیامک ثبت سفارش به مدیر</button>
       </form>
       {% if not has_admin_numbers %}<p class="help">هنوز شمارهٔ مدیری در تنظیمات سایت وارد نشده است.</p>{% endif %}
     </div>
@@ -107,6 +107,13 @@
         <dt>تأیید سن</dt><dd>{% if o.age_confirmed %}بله{% if o.age_confirmed_at %} — {{ o.age_confirmed_at|jdatetime }}{% endif %}{% else %}خیر{% endif %}</dd>
       </dl>
     </div>
+  </div>
+
+  {# --- order text to copy (items, recipient, address) --- #}
+  <div class="module order-copy">
+    <h2>متن سفارش برای کپی</h2>
+    <textarea id="order-copy-text" readonly rows="{{ admin_order_text.splitlines|length|add:1 }}">{{ admin_order_text }}</textarea>
+    <p><button type="button" class="button" data-copy-target="order-copy-text" data-copied-label="کپی شد">کپی متن</button></p>
   </div>
 
   {# --- payments --- #}

@@ -132,11 +132,17 @@ class SiteSettingsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         (
             "۷. سرویس پیامک",
             {
-                "fields": ("sms_provider", "sms_api_key", "clear_sms_api_key", "sms_sender"),
-                "description": "تا کلید API خالی است، پیامکی فرستاده نمی‌شود (فقط در «گزارش پیامک‌ها» ثبت می‌شود). متن پیامک‌ها در «پیامک ← متن‌های پیامک».",
+                "fields": ("sms_provider", "sms_api_key", "clear_sms_api_key", "sms_sender", "sms_site_url"),
+                "description": "تا کلید API خالی است، پیامکی فرستاده نمی‌شود (فقط در «گزارش پیامک‌ها» ثبت می‌شود).",
             },
         ),
-        ("۸. پیامک سفارش جدید به مدیر", {"fields": ("admin_sms_enabled", "admin_sms_numbers")}),
+        (
+            "۸. پیامک‌های ارسالی",
+            {
+                "fields": ("sms_templates_overview", "admin_sms_enabled", "admin_sms_numbers"),
+                "description": "متن هر پیامک را می‌توانید تغییر دهید و آن را فعال یا غیرفعال کنید.",
+            },
+        ),
         (
             "۹. سئو و شبکه‌های اجتماعی",
             {
@@ -176,7 +182,32 @@ class SiteSettingsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             },
         ),
     )
-    readonly_fields = ("messenger_links_preview",)
+    readonly_fields = ("messenger_links_preview", "sms_templates_overview")
+
+    @admin.display(description="پیامک‌ها")
+    def sms_templates_overview(self, obj):
+        from notifications.models import SMSTemplate
+
+        rows = [
+            (
+                reverse("admin:notifications_smstemplate_change", args=[t.pk]),
+                t.get_key_display(),
+                "on" if t.is_active else "off",
+                "فعال" if t.is_active else "غیرفعال",
+            )
+            for t in SMSTemplate.objects.all()
+        ]
+        table = format_html_join(
+            "",
+            '<tr><td><a href="{}">{}</a></td><td class="sms-state sms-{}">{}</td></tr>',
+            rows,
+        )
+        return format_html(
+            '<table class="sms-overview"><tbody>{}</tbody></table>'
+            '<p><a class="button" href="{}">ویرایش متن‌ها و فعال/غیرفعال کردن پیامک‌ها</a></p>',
+            table,
+            reverse("admin:notifications_smstemplate_changelist"),
+        )
 
     @admin.display(description="پیش‌نمایش لینک‌ها")
     def messenger_links_preview(self, obj):

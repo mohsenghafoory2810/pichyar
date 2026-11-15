@@ -1,10 +1,13 @@
 """Outgoing SMS.
 
-    send_sms(mobile, template_key, context)   render an SMSTemplate and queue it; never raises
+    send_sms(mobile, template_key, context)   render an SMSTemplate and queue it (skipped when the
+                                              template is switched off); never raises
     send_text(mobile, text, template_key="")  queue a ready text; never raises
-    build_admin_order_text(order)             the admin's new-order message
-    notify_admin_new_order(order)             once per order, when it becomes paid_processing
-    resend_admin_sms(order)                   send the admin message again (admin button, part 5)
+    build_admin_order_text(order)             items, recipient and address of an order (shown on the
+                                              admin order page to copy; not sent by SMS)
+    notify_admin_new_order(order)             short "new order" SMS, once per order, when the customer
+                                              finishes it (card receipt sent, or online payment paid)
+    resend_admin_sms(order)                   send that SMS again (admin button)
 
 Every message is an SMSLog row. It is delivered by a django-q2 job (deliver); a failed
 attempt is retried with backoff (RETRY_DELAYS) by the every-minute retry_pending_sms
@@ -58,7 +61,7 @@ def _format(value):
 def render(template_key, context, site_settings=None):
     """The SMSTemplate text with {placeholders} filled (numbers as 1,250,000; unknown ones empty)."""
     site_settings = site_settings or _site_settings()
-    values = _Blank({"site_name": site_settings.site_name})
+    values = _Blank({"site_name": site_settings.site_name, "site_url": site_settings.sms_site_url})
     values.update({k: _format(v) for k, v in (context or {}).items()})
     text = SMSTemplate.text_for(template_key)
     try:
@@ -70,8 +73,11 @@ def render(template_key, context, site_settings=None):
 
 def send_sms(mobile, template_key, context):
     """Render the template and queue the SMS. Returns the SMSLog, or None if it could not even be
-    queued (logged; a failing SMS never breaks the caller, e.g. checkout)."""
+    queued or the template is switched off (logged; a failing SMS never breaks the caller, e.g. checkout)."""
     try:
+        if not SMSTemplate.is_enabled(template_key):
+            logger.info("SMS %r is switched off; not sent to %s", template_key, mobile)
+            return None
         text = render(template_key, context)
     except Exception:
         logger.exception("Could not render SMS %r for %s", template_key, mobile)
@@ -168,12 +174,12 @@ def deliver_due():
     return sum(1 for pk in list(due) if deliver(pk) is not None)
 
 
-# --- admin message about a new paid order -------------------------------------------
+# --- admin message about a new order ------------------------------------------------
 
 
 def build_admin_order_text(order):
     """One line per item ("short_name quantity", gifts marked), then the recipient's name,
-    mobile, postal code and full postal address. Never truncated."""
+    mobile, postal code and full postal address. Shown on the admin order page to copy."""
     lines = []
     for item in order.items.all():
         line = f"{item.short_name or item.name} {item.quantity}"
@@ -190,17 +196,16 @@ def build_admin_order_text(order):
 
 
 def _send_admin_order_sms(order, site_settings):
-    context = {**order.sms_context(), "order_text": build_admin_order_text(order)}
-    text = render("admin_new_order", context, site_settings)
+    text = render("admin_new_order", order.admin_sms_context(), site_settings)
     return [log for mobile in site_settings.admin_mobiles if (log := send_text(mobile, text, "admin_new_order"))]
 
 
 def notify_admin_new_order(order):
-    """The admin SMS of a newly paid order (Order sends it once, when it becomes paid_processing).
-    Never raises."""
+    """The admin SMS of a new order (Order sends it once: when the customer submits the card-to-card
+    receipt, or when an online payment succeeds). Never raises."""
     try:
         site_settings = _site_settings()
-        if not site_settings.admin_sms_enabled:
+        if not site_settings.admin_sms_enabled or not SMSTemplate.is_enabled("admin_new_order"):
             return []
         return _send_admin_order_sms(order, site_settings)
     except Exception:
@@ -210,5 +215,5 @@ def notify_admin_new_order(order):
 
 def resend_admin_sms(order):
     """Send the admin message of `order` again to every admin number (also when the automatic
-    admin SMS is switched off: this is an explicit request). -> the SMSLog rows."""
+    admin SMS or its template is switched off: this is an explicit request). -> the SMSLog rows."""
     return _send_admin_order_sms(order, _site_settings())

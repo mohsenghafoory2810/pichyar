@@ -14,6 +14,9 @@ class SMSTemplate(models.Model):
         "متن پیامک",
         help_text="متغیرها را با آکولاد بنویسید، مثل {order_number}. پیامک طولانی چندبخشی فرستاده می‌شود و کوتاه نمی‌شود.",
     )
+    is_active = models.BooleanField(
+        "فعال", default=True, help_text="خاموش باشد، این پیامک فرستاده نمی‌شود. کد تأیید ورود را نمی‌توان خاموش کرد."
+    )
     updated_at = models.DateTimeField("آخرین ویرایش", auto_now=True)
 
     class Meta:
@@ -29,6 +32,8 @@ class SMSTemplate(models.Model):
         return defaults.TEMPLATES.get(self.key, {}).get("vars", ())
 
     def clean(self):
+        if not self.is_active and not self.can_disable:
+            raise ValidationError({"is_active": "این پیامک برای ورود مشتریان لازم است و نمی‌توان آن را خاموش کرد."})
         allowed = set(self.allowed_vars)
         try:
             used = {name for _, name, _, _ in string.Formatter().parse(self.text or "") if name is not None}
@@ -43,6 +48,18 @@ class SMSTemplate(models.Model):
                 {"text": f"متغیر {names} برای این پیامک تعریف نشده است. متغیرهای مجاز: "
                  + "، ".join("{" + v + "}" for v in self.allowed_vars)}
             )
+
+    @property
+    def can_disable(self):
+        return defaults.can_disable(self.key)
+
+    @classmethod
+    def is_enabled(cls, key):
+        """False only when the admin switched this message off (a missing row means on)."""
+        if not defaults.can_disable(key):
+            return True
+        active = cls.objects.filter(key=key).values_list("is_active", flat=True).first()
+        return active is not False
 
     @classmethod
     def text_for(cls, key):

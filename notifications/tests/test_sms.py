@@ -39,7 +39,7 @@ class TemplateTests(TestCase):
 
     def test_render_fills_placeholders(self):
         text = services.render("order_registered", {"order_number": "1234567", "total": 2_200_000})
-        self.assertEqual(text, "سفارش 1234567 در پیچ‌یار ثبت شد.\nمبلغ قابل پرداخت: 2,200,000 تومان")
+        self.assertEqual(text, "سفارش 1234567 در پیچ‌یار ثبت شد.\nمبلغ قابل پرداخت: 2,200,000 تومان\nhttps://pichyar.ir")
         shipped = services.render("shipped", {"order_number": "1234567", "tracking_code": "ABC123"})
         self.assertIn("کد رهگیری پست: ABC123", shipped)
 
@@ -329,21 +329,36 @@ class AdminOrderSmsTests(TestCase):
             order.mark_shipped("TRACK1")
         logs = self.admin_logs()
         self.assertEqual(sorted(logs.values_list("mobile", flat=True)), self.ADMINS)
-        self.assertEqual(logs[0].text, services.build_admin_order_text(order))
+        text = logs[0].text
+        self.assertIn(order.number, text)
+        self.assertIn("ثبت شد", text)
+        # the items and the address are on the admin order page, not in the SMS
+        self.assertNotIn(ADDRESS["address"], text)
+        self.assertNotIn(ADDRESS["recipient_mobile"], text)
+        self.assertNotIn("پوکه پرستون", text)
         order.refresh_from_db()
         self.assertIsNotNone(order.admin_sms_queued_at)
 
-    def test_card_approval_sends_it(self):
+    def test_card_receipt_sends_it_once(self):
         from payments.services import submit_card_transfer
 
         order = self.order()
-        submit_card_transfer(order, "1")
+        with self.captureOnCommitCallbacks(execute=True):
+            submit_card_transfer(order, "1")
+        self.assertEqual(self.admin_logs().count(), 2)  # when the customer sends the receipt
+        self.assertIn("کارت به کارت", self.admin_logs().first().text)
         with self.captureOnCommitCallbacks(execute=True):
             order.approve()
-        self.assertEqual(self.admin_logs().count(), 2)
+        self.assertEqual(self.admin_logs().count(), 2)  # not again on approval
 
     def test_toggle_off(self):
         SiteSettings.objects.update(admin_sms_enabled=False)
+        with self.captureOnCommitCallbacks(execute=True):
+            self.order().confirm_payment()
+        self.assertFalse(self.admin_logs().exists())
+
+    def test_template_switched_off(self):
+        SMSTemplate.objects.filter(key="admin_new_order").update(is_active=False)
         with self.captureOnCommitCallbacks(execute=True):
             self.order().confirm_payment()
         self.assertFalse(self.admin_logs().exists())
@@ -355,22 +370,36 @@ class AdminOrderSmsTests(TestCase):
         SiteSettings.objects.update(admin_sms_enabled=False)
         self.assertEqual(len(services.resend_admin_sms(order)), 2)  # explicit resend ignores the toggle
 
-    def test_long_message_is_never_truncated(self):
-        many = [make_product(f"کالای شمارهٔ {i}", price=100_000, stock=5, short_name=f"کالای {i}") for i in range(30)]
-        order = make_order(*[(p, 1) for p in many])
-        text = services.build_admin_order_text(order)
-        log = services.resend_admin_sms(order)[0]
-        self.assertEqual(log.text, text)
-        self.assertGreater(log.parts, 3)
-        self.assertIn("کالای 29 1", log.text)
-
     def test_failure_does_not_block_confirmation(self):
         order = self.order()
-        with mock.patch("notifications.services.build_admin_order_text", side_effect=RuntimeError("x")):
+        with mock.patch("notifications.services.render", side_effect=RuntimeError("x")):
             with self.captureOnCommitCallbacks(execute=True):
                 order.confirm_payment()
         order.refresh_from_db()
         self.assertEqual(order.status, "paid_processing")
+
+
+class SiteUrlAndSwitchTests(TestCase):
+    def test_customer_messages_carry_the_site_url(self):
+        for key in ("otp", "order_registered", "payment_confirmed", "shipped", "support_reply"):
+            text = services.render(key, {"order_number": "1", "code": "1234"})
+            self.assertIn("https://pichyar.ir", text, key)
+
+    def test_site_url_comes_from_settings(self):
+        SiteSettings.objects.update(sms_site_url="https://example.ir")
+        self.assertIn("https://example.ir", services.render("order_registered", {"order_number": "1"}))
+
+    def test_switched_off_template_is_not_sent(self):
+        SMSTemplate.objects.filter(key="order_registered").update(is_active=False)
+        self.assertIsNone(services.send_sms("09121111111", "order_registered", {"order_number": "1"}))
+        self.assertFalse(SMSLog.objects.exists())
+
+    def test_login_code_cannot_be_switched_off(self):
+        SMSTemplate.objects.filter(key="otp").update(is_active=False)
+        self.assertIsNotNone(services.send_sms("09121111111", "otp", {"code": "1234"}))
+        row = SMSTemplate.objects.get(key="otp")
+        with self.assertRaises(ValidationError):
+            row.full_clean()
 
 
 class CheckoutSurvivesSmsFailureTests(TestCase):

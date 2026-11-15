@@ -107,3 +107,11 @@ html[data-theme="dark"] .sales-svg { --bar: #4F86C0; }
 .qr-box { width: 220px; margin: 8px 12px; background: #fff; padding: 8px; border-radius: 8px; }
 .qr-box svg { width: 100%; height: auto; display: block; }
 .secret { font-size: 15px; letter-spacing: .08em; }
+
+/* Order page: the order text to copy. Settings page: the SMS overview. */
+.order-copy textarea { display: block; width: calc(100% - 24px); margin: 8px 12px; font: inherit; line-height: 1.8; resize: vertical; box-sizing: border-box; }
+.order-copy p { margin: 0 12px 10px; }
+.sms-overview { margin-bottom: 8px; }
+.sms-overview td { padding: 4px 10px; }
+.sms-state.sms-on { color: #2e7d32; font-weight: 700; }
+.sms-state.sms-off { color: var(--error-fg, #ba2121); font-weight: 700; }

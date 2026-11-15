@@ -181,8 +181,17 @@ class SiteSettings(models.Model):
     sms_sender = models.CharField(
         "شمارهٔ فرستنده (خط پیامک)", max_length=30, blank=True, help_text="خالی یعنی خط پیش‌فرض حساب شما در سرویس پیامک."
     )
+    sms_site_url = models.URLField(
+        "نشانی سایت در پیامک‌ها",
+        default="https://pichyar.ir",
+        blank=True,
+        help_text="در متن پیامک‌ها با متغیر {site_url} نوشته می‌شود.",
+    )
     admin_sms_enabled = models.BooleanField(
-        "پیامک سفارش جدید به مدیر", default=True, help_text="برای هر سفارش، یک بار و پس از تأیید پرداخت فرستاده می‌شود."
+        "پیامک سفارش جدید به مدیر",
+        default=True,
+        help_text="برای هر سفارش یک بار، وقتی مشتری سفارش را کامل کرد (رسید کارت به کارت را فرستاد یا پرداخت اینترنتی موفق شد). "
+        "اقلام و نشانی سفارش در صفحهٔ همان سفارش برای کپی آماده است.",
     )
     admin_sms_numbers = models.TextField(
         "شماره‌های موبایل مدیر", blank=True, help_text="یک یا چند شماره؛ هر شماره در یک خط (یا جدا با ویرگول)."

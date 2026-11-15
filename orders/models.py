@@ -54,6 +54,7 @@ TRANSITIONS = {
 }
 CONFIRMED_STATUSES = {S.PAID_PROCESSING, S.SHIPPED, S.DELIVERED}
 SMS_ON_STATUS = {S.PAID_PROCESSING: "payment_confirmed", S.SHIPPED: "shipped"}
+ADMIN_SMS_ON_STATUS = {S.AWAITING_APPROVAL, S.PAID_PROCESSING}
 
 
 class InvalidTransition(Exception):
@@ -440,6 +441,13 @@ class Order(models.Model):
     def sms_context(self):
         return {"order_number": self.number, "total": self.total, "tracking_code": self.post_tracking_code}
 
+    def admin_sms_context(self):
+        return {
+            **self.sms_context(),
+            "customer": self.recipient_name,
+            "payment_method": self.get_payment_method_display(),
+        }
+
     # --- state changes (each runs in its own transaction on a locked row) ------------
 
     def _locked(self):
@@ -453,7 +461,8 @@ class Order(models.Model):
             )
         old = self.status
         self.status = new_status
-        notify_admin = new_status == S.PAID_PROCESSING and self.admin_sms_queued_at is None
+        # The customer has finished the order: card-to-card receipt sent, or online payment paid.
+        notify_admin = new_status in ADMIN_SMS_ON_STATUS and self.admin_sms_queued_at is None
         if notify_admin:  # exactly once per order
             self.admin_sms_queued_at = timezone.now()
         self.save()

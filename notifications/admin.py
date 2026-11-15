@@ -8,8 +8,10 @@ from .models import SMSLog, SMSTemplate
 
 @admin.register(SMSTemplate)
 class SMSTemplateAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
-    list_display = ("__str__", "text", "updated_at")
-    fields = ("key", "text", "variables")
+    list_display = ("__str__", "is_active", "text", "updated_at")
+    list_display_links = ("__str__",)
+    list_editable = ("is_active",)
+    fields = ("key", "is_active", "text", "variables")
     readonly_fields = ("key", "variables")
 
     @admin.display(description="متغیرهای مجاز")
@@ -20,7 +22,22 @@ class SMSTemplateAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         return SMSTemplate.objects.count() < len(TEMPLATES)
 
     def get_readonly_fields(self, request, obj=None):
-        return ("variables",) if obj is None else self.readonly_fields
+        if obj is None:
+            return ("variables",)
+        if not obj.can_disable:
+            return (*self.readonly_fields, "is_active")
+        return self.readonly_fields
+
+    def get_changelist_formset(self, request, **kwargs):
+        formset = super().get_changelist_formset(request, **kwargs)
+
+        class LockedFormSet(formset):
+            def add_fields(self, form, index):
+                super().add_fields(form, index)
+                if form.instance.pk and not form.instance.can_disable:
+                    form.fields["is_active"].disabled = True
+
+        return LockedFormSet
 
     def has_delete_permission(self, request, obj=None):
         return False

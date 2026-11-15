@@ -16,7 +16,7 @@ from catalog import stock
 from core.admin_mixins import PersianDigitsSearchMixin
 from core.persian import fa_digits, fa_number, latin_digits, toman
 from core.utils import get_site_settings
-from notifications.services import resend_admin_sms
+from notifications.services import build_admin_order_text, resend_admin_sms
 
 from . import export, reports
 from .models import TRANSITIONS, DiscountCode, GiftPoolItem, InvalidTransition, Order, OrderStatus
@@ -118,7 +118,8 @@ class OrderAdmin(PersianDigitsSearchMixin, ModelAdminJalaliMixin, admin.ModelAdm
             "can_ship": order.status == S.PAID_PROCESSING,
             "can_deliver": order.status == S.SHIPPED,
             "can_cancel": S.CANCELED in TRANSITIONS[order.status],
-            "can_resend_admin_sms": order.is_confirmed,
+            "can_resend_admin_sms": order.is_confirmed or order.status == S.AWAITING_APPROVAL,
+            "admin_order_text": build_admin_order_text(order),
             "has_admin_numbers": bool(get_site_settings(request).admin_mobiles),
             "print_url": reverse("admin:orders_order_print") + f"?ids={order.pk}",
             **(extra_context or {}),
@@ -140,7 +141,7 @@ class OrderAdmin(PersianDigitsSearchMixin, ModelAdminJalaliMixin, admin.ModelAdm
         "ship": "ثبت ارسال",
         "deliver": "ثبت تحویل",
         "cancel": "لغو سفارش",
-        "resend_admin_sms": "ارسال مجدد پیامک ادمین",
+        "resend_admin_sms": "ارسال مجدد پیامک ثبت سفارش به مدیر",
     }
 
     @staticmethod
@@ -175,8 +176,8 @@ class OrderAdmin(PersianDigitsSearchMixin, ModelAdminJalaliMixin, admin.ModelAdm
         if action == "resend_admin_sms":
             logs = resend_admin_sms(order)
             if not logs:
-                raise InvalidTransition("هیچ شمارهٔ مدیری در «تنظیمات سایت ← پیامک سفارش جدید به مدیر» ثبت نشده است.")
-            return f"پیامک سفارش برای {fa_number(len(logs))} شمارهٔ مدیر در صف ارسال قرار گرفت."
+                raise InvalidTransition("هیچ شمارهٔ مدیری در «تنظیمات سایت ← پیامک‌های ارسالی» ثبت نشده است.")
+            return f"پیامک ثبت سفارش برای {fa_number(len(logs))} شمارهٔ مدیر در صف ارسال قرار گرفت."
         raise Http404
 
     def action_view(self, request, object_id, action):

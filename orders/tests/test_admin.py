@@ -220,12 +220,13 @@ class OrderActionTests(OrderAdminTestCase):
         self.act("resend_admin_sms")
         logs = SMSLog.objects.filter(template_key="admin_new_order")
         self.assertEqual(sorted(logs.values_list("mobile", flat=True)), ["09121234567", "09127654321"])
-        self.assertIn("شمزین 1 (هدیه)", logs.first().text)
+        self.assertIn(self.order.number, logs.first().text)
+        self.assertContains(self.client.get(self.change_url()), "شمزین 1 (هدیه)")  # in the order text to copy
 
     def test_resend_button_only_for_confirmed_orders(self):
-        self.assertNotContains(self.client.get(self.change_url()), "ارسال مجدد پیامک ادمین")
+        self.assertNotContains(self.client.get(self.change_url()), "ارسال مجدد پیامک ثبت سفارش")
         self.approved()
-        self.assertContains(self.client.get(self.change_url()), "ارسال مجدد پیامک ادمین")
+        self.assertContains(self.client.get(self.change_url()), "ارسال مجدد پیامک ثبت سفارش")
 
 
 class PrintAndExportTests(OrderAdminTestCase):
