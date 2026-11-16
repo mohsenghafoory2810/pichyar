@@ -61,7 +61,26 @@ services:
       timeout: 5s
       retries: 3
 
+  # Temporary receive-only mailbox (e.g. for an eNamad confirmation email). It does not start
+  # with a plain "docker compose up"; start it with:  docker compose --profile mail up -d mail
+  # It only accepts mail for @DOMAIN and never sends or relays. The web page is bound to the
+  # server's localhost, so it is reached only through an SSH tunnel (see README).
+  mail:
+    image: axllent/mailpit:v1.20.0
+    profiles: ["mail"]
+    restart: unless-stopped
+    ports:
+      - "25:1025"
+      - "127.0.0.1:8025:8025"
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: 200
+      MP_SMTP_ALLOWED_RECIPIENTS: "@${DOMAIN}$$"
+    volumes:
+      - mail:/data
+
 volumes:
+  mail:
   db:
   media:
   private:
