@@ -5,6 +5,7 @@ from . import views
 app_name = "seo"
 
 urlpatterns = [
+    path(f"{views.ENAMAD_CODE}.txt", views.enamad_file, name="enamad"),
     path("robots.txt", views.robots_txt, name="robots"),
     path("llms.txt", views.llms_txt, name="llms"),
     path("sitemap.xml", views.sitemap_index, name="sitemap"),

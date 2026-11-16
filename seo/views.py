@@ -29,6 +29,10 @@ DISALLOW = (
 )
 
 TEXT = "text/plain; charset=utf-8"
+
+# eNamad domain verification (https://enamad.ir): an empty /<code>.txt, the code in the home page
+# title (temporary) and <meta name="enamad"> in base.html.
+ENAMAD_CODE = "29679247"
 CACHE = cache_control(public=True, max_age=3600)
 
 
@@ -41,6 +45,11 @@ def robots_txt(request):
             lines += [f"User-agent: {bot}", "Disallow: /", ""]
     lines.append(f"Sitemap: {absolute(request, reverse('seo:sitemap'))}")
     return HttpResponse("\n".join(lines) + "\n", content_type=TEXT)
+
+
+def enamad_file(request):
+    """Empty verification file for eNamad."""
+    return HttpResponse("", content_type=TEXT)
 
 
 def _first_sentence(text, limit=200):

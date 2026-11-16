@@ -34,7 +34,9 @@ class HeadTests(SEOTestCase):
         )
         response = self.html("/")
         site_name = SiteSettings.load().site_name
-        self.assertEqual(title(response), site_name)
+        # TEMPORARY: the eNamad code is in the home title until verification; back to site_name after.
+        self.assertEqual(title(response), f"{site_name} 29679247")
+        self.assertContains(response, '<meta name="enamad" content="29679247" />')
         self.assertContains(response, '<meta name="description" content="توضیح سایت از مدیریت">')
         self.assertEqual(canonical(response), "http://testserver/")
         self.assertIn("index, follow", robots(response))
@@ -290,3 +292,11 @@ class InternalLinkTests(SEOTestCase):
     def test_home_latest_articles(self):
         article = make_article("تازه‌ترین")
         self.assertContains(self.html("/"), article.get_absolute_url())
+
+
+class EnamadFileTests(SEOTestCase):
+    def test_empty_verification_file(self):
+        response = self.client.get("/29679247.txt")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"")
+        self.assertTrue(response["Content-Type"].startswith("text/plain"))
