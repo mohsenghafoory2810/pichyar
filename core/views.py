@@ -11,7 +11,6 @@ from django.views.decorators.http import require_POST
 
 from catalog.views import home_sections
 from seo.meta import PageMeta, absolute, auto_description, crumbs, has_filter_params
-from seo.views import ENAMAD_CODE
 
 from .models import Banner, StaticPage
 from .utils import get_site_settings
@@ -43,8 +42,7 @@ def home(request):
     site_settings = get_site_settings(request)
     banners = Banner.objects.filter(is_active=True)
     page_meta = PageMeta(
-        # TEMPORARY: the eNamad code in the title for domain verification; remove after approval.
-        title=f"{site_settings.site_name} {ENAMAD_CODE}",
+        title=site_settings.site_name,
         description=auto_description(site_settings.site_description),
         canonical=absolute(request, "/"),
         noindex=has_filter_params(request),

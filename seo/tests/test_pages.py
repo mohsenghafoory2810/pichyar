@@ -34,8 +34,7 @@ class HeadTests(SEOTestCase):
         )
         response = self.html("/")
         site_name = SiteSettings.load().site_name
-        # TEMPORARY: the eNamad code is in the home title until verification; back to site_name after.
-        self.assertEqual(title(response), f"{site_name} 29679247")
+        self.assertEqual(title(response), site_name)
         self.assertContains(response, '<meta name="enamad" content="29679247" />')
         self.assertContains(response, '<meta name="description" content="توضیح سایت از مدیریت">')
         self.assertEqual(canonical(response), "http://testserver/")
