@@ -20,11 +20,11 @@ SMS_SENDERS = ("accounts.otp.send_sms", "orders.models.send_sms", "orders.servic
 
 @contextmanager
 def capture_sms():
-    """Collects (mobile, template_key, context) of every send_sms call."""
+    """Collects (mobile, template_key, context) of every send_sms call (a footer is in context["_footer"])."""
     sent = []
 
-    def fake(mobile, key, context):
-        sent.append((mobile, key, context))
+    def fake(mobile, key, context, footer=""):
+        sent.append((mobile, key, {**context, "_footer": footer} if footer else context))
         return True
 
     with ExitStack() as stack:

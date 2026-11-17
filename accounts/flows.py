@@ -26,7 +26,7 @@ def otp_step(request, purpose, pending_key):
             if mobile_form.is_valid():
                 mobile = mobile_form.cleaned_data["mobile"]
                 try:
-                    otp.send_code(mobile, purpose, client_ip(request))
+                    otp.send_code(mobile, purpose, client_ip(request), request.get_host())
                     pending, notice = mobile, "کد تأیید پیامک شد."
                 except otp.OTPError as e:
                     if e.code == "cooldown":  # a code was just sent to this number: go on with it
@@ -35,7 +35,7 @@ def otp_step(request, purpose, pending_key):
                         mobile_form.add_error("mobile", e.message)
         elif action == "resend" and pending:
             try:
-                otp.send_code(pending, purpose, client_ip(request))
+                otp.send_code(pending, purpose, client_ip(request), request.get_host())
                 notice = "کد جدید پیامک شد."
             except otp.OTPError as e:
                 error = e.message

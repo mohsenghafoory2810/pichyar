@@ -26,6 +26,51 @@
     });
   }
 
+  /* SMS code inputs: <input autocomplete="one-time-code" data-otp-length="5"> in a form with the
+     "verify" button. Android Chrome reads the code from the SMS itself (Web OTP API; the SMS ends
+     with "@domain #code"); iPhone Safari offers it above the keyboard (one tap). As soon as the
+     whole code is in the box (filled, typed or pasted) the form is submitted. */
+  function latinDigits(s) {
+    return String(s)
+      .replace(/[۰-۹]/g, function (d) { return d.charCodeAt(0) - 0x06f0; })
+      .replace(/[٠-٩]/g, function (d) { return d.charCodeAt(0) - 0x0660; })
+      .replace(/\D/g, "");
+  }
+
+  function initOtpInputs(root) {
+    root.querySelectorAll("input[data-otp-length]").forEach(function (input) {
+      if (input._otp) return;
+      input._otp = true;
+      var length = Number(input.dataset.otpLength) || 5;
+      var form = input.form;
+      var verify = form && form.querySelector('button[name="action"][value="verify"]');
+      if (!verify) return;
+      var sent = latinDigits(input.value); // a re-shown wrong code is not sent again by itself
+
+      function submitIfComplete() {
+        var code = latinDigits(input.value);
+        if (code.length !== length || code === sent || !input.isConnected || verify.disabled) return;
+        sent = code;
+        input.value = code;
+        verify.click(); // a click (not form.submit) so HTMX sends action=verify
+      }
+      input.addEventListener("input", submitIfComplete);
+
+      if ("OTPCredential" in window && window.AbortController) {
+        var ac = new AbortController();
+        form.addEventListener("submit", function () { ac.abort(); });
+        navigator.credentials
+          .get({ otp: { transport: ["sms"] }, signal: ac.signal })
+          .then(function (otp) {
+            if (!otp || !otp.code || !input.isConnected) return;
+            input.value = otp.code;
+            submitIfComplete();
+          })
+          .catch(function () {}); // aborted, refused by the user or not supported: type it in
+      }
+    });
+  }
+
   /* Age gate: the server always renders the whole page; while the overlay is shown the page
      behind it is made inert (no focus/clicks, hidden from screen readers) and does not scroll. */
   function initAgeGate() {
@@ -74,6 +119,10 @@
     initAgeGate();
     initSupportButton();
     initCountdowns(document);
+    initOtpInputs(document);
   });
-  document.addEventListener("htmx:load", function (e) { initCountdowns(e.detail.elt); });
+  document.addEventListener("htmx:load", function (e) {
+    initCountdowns(e.detail.elt);
+    initOtpInputs(e.detail.elt);
+  });
 })();

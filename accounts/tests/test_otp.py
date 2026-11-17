@@ -157,6 +157,16 @@ class OTPServiceTests(TestCase):
             otp.verify_code(MOBILE, LOGIN, "")
 
 
+class OriginLineTests(TestCase):
+    def test_domain(self):
+        self.assertEqual(otp.origin_line("Pichyar.ir", "12345"), "@pichyar.ir #12345")
+        self.assertEqual(otp.origin_line("www.pichyar.ir:443", "12345"), "@www.pichyar.ir #12345")
+
+    def test_no_line_without_a_domain(self):
+        for host in (None, "", "localhost", "localhost:8000", "127.0.0.1:8000", "192.168.1.5"):
+            self.assertEqual(otp.origin_line(host, "12345"), "", host)
+
+
 class ClientIPTests(TestCase):
     def test_remote_addr_by_default(self):
         request = RequestFactory().get("/", REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR="6.6.6.6")
@@ -230,6 +240,15 @@ class LoginViewTests(TestCase):
         self.assertEqual(len(sent), 1)
         self.assertContains(response, "ثانیه صبر کنید")
         self.assertContains(response, 'data-countdown="60"')
+
+    @override_settings(ALLOWED_HOSTS=["pichyar.ir"])
+    def test_sms_ends_with_origin_line_for_autofill(self):
+        with capture_sms() as sent:
+            response = self.client.post(self.url, {"action": "send", "mobile": MOBILE}, HTTP_HOST="pichyar.ir")
+        code = sent[0][2]["code"]
+        self.assertEqual(sent[0][2]["_footer"], f"@pichyar.ir #{code}")
+        self.assertContains(response, 'autocomplete="one-time-code"')
+        self.assertContains(response, 'data-otp-length="5"')
 
     def test_change_number_goes_back(self):
         with capture_sms():

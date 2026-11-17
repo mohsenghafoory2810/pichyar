@@ -71,14 +71,17 @@ def render(template_key, context, site_settings=None):
         return TEMPLATES[template_key]["text"].format_map(values).strip()
 
 
-def send_sms(mobile, template_key, context):
+def send_sms(mobile, template_key, context, footer=""):
     """Render the template and queue the SMS. Returns the SMSLog, or None if it could not even be
-    queued or the template is switched off (logged; a failing SMS never breaks the caller, e.g. checkout)."""
+    queued or the template is switched off (logged; a failing SMS never breaks the caller, e.g. checkout).
+    `footer` is added as the last line, after the (admin-editable) template text."""
     try:
         if not SMSTemplate.is_enabled(template_key):
             logger.info("SMS %r is switched off; not sent to %s", template_key, mobile)
             return None
         text = render(template_key, context)
+        if footer:
+            text = f"{text}\n{footer}"
     except Exception:
         logger.exception("Could not render SMS %r for %s", template_key, mobile)
         return None

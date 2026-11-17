@@ -66,8 +66,19 @@ def seconds_until_resend(mobile, now=None):
     return max(0, int(resend_cooldown() - (now - last).total_seconds() + 0.999))
 
 
-def send_code(mobile, purpose, ip=None):
-    """Create and send a new code (the previous one of the same purpose stops working)."""
+def origin_line(host, code):
+    """The origin-bound last line ("@pichyar.ir #12345") that lets the browser read the code from
+    the SMS: Chrome on Android (Web OTP API) fills it in by itself, Safari on iPhone offers it above
+    the keyboard. `host` is the site's host as the user opened it (port removed); empty → no line."""
+    host = (host or "").split(":")[0].strip().lower()
+    if "." not in host or host.replace(".", "").isdigit():  # localhost / an IP address: not a domain
+        return ""
+    return f"@{host} #{code}"
+
+
+def send_code(mobile, purpose, ip=None, host=None):
+    """Create and send a new code (the previous one of the same purpose stops working).
+    `host` (request.get_host()) adds the line the phone's browser needs to fill the code in."""
     now = timezone.now()
     code = generate_code()
     with transaction.atomic():  # BEGIN IMMEDIATE on SQLite: the checks and the insert can't interleave
@@ -88,7 +99,7 @@ def send_code(mobile, purpose, ip=None):
             created_at=now,
             expires_at=now + timedelta(seconds=ttl_seconds()),
         )
-    send_sms(mobile, "otp", {"code": code})
+    send_sms(mobile, "otp", {"code": code}, footer=origin_line(host, code))
     return otp
 
 

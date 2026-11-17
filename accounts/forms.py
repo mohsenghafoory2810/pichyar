@@ -23,6 +23,7 @@ class CodeForm(forms.Form):
                 "dir": "ltr",
                 "class": "input text-center tracking-[0.5em]",
                 "autofocus": True,
+                "data-otp-length": CODE_LENGTH,  # app.js: read from the SMS and submit when complete
             }
         ),
     )

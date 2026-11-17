@@ -166,10 +166,11 @@ class ConsoleModeTests(TestCase):
         self.assertIsNotNone(log.sent_at)
 
     def test_login_code_is_not_kept_in_the_log(self):
-        log = services.send_sms("09121111111", "otp", {"code": "48213"})
+        log = services.send_sms("09121111111", "otp", {"code": "48213"}, footer="@pichyar.ir #48213")
         log.refresh_from_db()
         self.assertNotIn("48213", log.text)
         self.assertIn("•••••", log.text)
+        self.assertTrue(log.text.endswith("\n@pichyar.ir #•••••"), log.text)
 
 
 class QueueAndRetryTests(TestCase):
