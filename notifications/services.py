@@ -8,6 +8,8 @@
     notify_admin_new_order(order)             short "new order" SMS, once per order, when the customer
                                               finishes it (card receipt sent, or online payment paid)
     resend_admin_sms(order)                   send that SMS again (admin button)
+    start_campaign(campaign)                  group SMS (SMSCampaign) to every active user: one SMSLog per
+                                              mobile, created by a background job and sent in small batches
 
 Every message is an SMSLog row. It is delivered by a django-q2 job (deliver); a failed
 attempt is retried with backoff (RETRY_DELAYS) by the every-minute retry_pending_sms
@@ -22,11 +24,11 @@ import re
 from datetime import timedelta
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from .defaults import TEMPLATES
-from .models import SMSLog, SMSTemplate, sms_parts
+from .models import SMSCampaign, SMSLog, SMSTemplate, sms_parts
 from .providers import SMSError, get_provider
 
 logger = logging.getLogger("notifications.sms")
@@ -174,7 +176,12 @@ def deliver_due():
         | Q(status=S.QUEUED, created_at__lte=now - LOST_JOB_AFTER)
         | Q(status=S.SENDING, updated_at__lte=now - STUCK_SENDING_AFTER)
     ).values_list("pk", flat=True)[:100]
-    return sum(1 for pk in list(due) if deliver(pk) is not None)
+    attempted = sum(1 for pk in list(due) if deliver(pk) is not None)
+    lost_campaigns = SMSCampaign.objects.filter(status=C.QUEUED, created_at__lte=now - LOST_JOB_AFTER)
+    for campaign_id in list(lost_campaigns.values_list("pk", flat=True)[:5]):
+        enqueue_batches(prepare_campaign(campaign_id))
+    finish_campaigns()
+    return attempted
 
 
 # --- admin message about a new order ------------------------------------------------
@@ -224,3 +231,98 @@ def resend_admin_sms(order):
     """Send the admin message of `order` again to every admin number (also when the automatic
     admin SMS or its template is switched off: this is an explicit request). -> the SMSLog rows."""
     return _send_admin_order_sms(order, _site_settings())
+
+
+# --- group SMS to every user (SMSCampaign) -------------------------------------------
+
+C = SMSCampaign.Status
+CAMPAIGN_BATCH = 20  # messages per worker job: 20 x provider timeout (10 s) stays under the job timeout
+PENDING = (S.QUEUED, S.SENDING, S.RETRYING)
+
+
+def campaign_recipients():
+    """Distinct mobiles of every active user (customers and staff)."""
+    from accounts.models import User
+
+    return (
+        User.objects.filter(is_active=True).exclude(mobile="").order_by("mobile").values_list("mobile", flat=True).distinct()
+    )
+
+
+def render_campaign(text, site_settings=None):
+    site_settings = site_settings or _site_settings()
+    values = _Blank({"site_name": site_settings.site_name, "site_url": site_settings.sms_site_url})
+    return text.format_map(values).strip()
+
+
+def start_campaign(campaign):
+    """Called once the campaign row is saved: prepares it in the background (at once in console mode)."""
+
+    def run():
+        try:
+            if get_provider(_site_settings()).is_console:
+                enqueue_batches(prepare_campaign(campaign.pk))
+            else:
+                from django_q.tasks import async_task
+
+                async_task("notifications.tasks.prepare_campaign", campaign.pk)
+        except Exception:  # the every-minute retry job prepares it later
+            logger.exception("Could not start SMS campaign %s", campaign.pk)
+
+    transaction.on_commit(run)
+
+
+def prepare_campaign(campaign_id):
+    """Create one queued SMSLog per recipient (all or nothing). -> the new SMSLog ids, or [] when
+    the campaign was already prepared (or is being prepared by another job)."""
+    site_settings = _site_settings()
+    provider = get_provider(site_settings)
+    with transaction.atomic():
+        if not SMSCampaign.objects.filter(pk=campaign_id, status=C.QUEUED).update(status=C.PREPARING):
+            return []
+        campaign = SMSCampaign.objects.get(pk=campaign_id)
+        text = render_campaign(campaign.text, site_settings)
+        parts = sms_parts(text)
+        mobiles = list(campaign_recipients())
+        SMSLog.objects.bulk_create(
+            [SMSLog(mobile=m, text=text, campaign=campaign, provider=provider.key, parts=parts) for m in mobiles],
+            batch_size=500,
+        )
+        campaign.status = C.SENDING if mobiles else C.DONE
+        campaign.recipients_count = len(mobiles)
+        campaign.save(update_fields=["status", "recipients_count", "updated_at"])
+    logger.info("SMS campaign %s: %s messages queued", campaign_id, len(mobiles))
+    return list(campaign.logs.filter(status=S.QUEUED).order_by("pk").values_list("pk", flat=True))
+
+
+def enqueue_batches(log_ids):
+    if not log_ids:
+        return
+    if get_provider(_site_settings()).is_console:
+        deliver_batch(log_ids)
+        return
+    try:
+        from django_q.tasks import async_task
+
+        for i in range(0, len(log_ids), CAMPAIGN_BATCH):
+            async_task("notifications.tasks.deliver_sms_batch", log_ids[i : i + CAMPAIGN_BATCH])
+    except Exception:  # queued rows are picked up by the every-minute retry job
+        logger.exception("Could not enqueue SMS campaign batches")
+
+
+def deliver_batch(log_ids):
+    """Deliver several messages one after another (a row already taken by another job is skipped)."""
+    attempted = 0
+    for pk in log_ids:
+        try:
+            attempted += deliver(pk) is not None
+        except Exception:
+            logger.exception("SMS %s: delivery failed", pk)
+    finish_campaigns()
+    return attempted
+
+
+def finish_campaigns():
+    """Mark campaigns whose every message is sent or failed as done."""
+    pending = SMSLog.objects.filter(campaign=OuterRef("pk"), status__in=PENDING)
+    SMSCampaign.objects.filter(status=C.SENDING).exclude(Exists(pending)).update(status=C.DONE, updated_at=timezone.now())

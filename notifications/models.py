@@ -101,6 +101,9 @@ class SMSLog(models.Model):
     provider_response = models.TextField("پاسخ سرویس", blank=True)
     message_id = models.CharField("شناسهٔ پیامک نزد سرویس", max_length=64, blank=True)
     error = models.CharField("خطا", max_length=255, blank=True)
+    campaign = models.ForeignKey(
+        "SMSCampaign", verbose_name="پیامک گروهی", null=True, blank=True, on_delete=models.PROTECT, related_name="logs"
+    )
     parts = models.PositiveSmallIntegerField("تعداد بخش", default=1)
     attempts = models.PositiveSmallIntegerField("تعداد تلاش", default=0)
     next_attempt_at = models.DateTimeField("تلاش بعدی", null=True, blank=True)
@@ -115,3 +118,53 @@ class SMSLog(models.Model):
 
     def __str__(self):
         return f"{self.mobile} - {self.get_status_display()}"
+
+
+CAMPAIGN_VARS = ("site_name", "site_url")
+
+
+class SMSCampaign(models.Model):
+    """One custom text sent to every active user of the site (admin «پیامک گروهی»).
+    Each recipient gets an SMSLog row (campaign=this), delivered by the normal SMS queue."""
+
+    class Status(models.TextChoices):
+        QUEUED = "queued", "در صف آماده‌سازی"
+        PREPARING = "preparing", "در حال آماده‌سازی"
+        SENDING = "sending", "در حال ارسال"
+        DONE = "done", "پایان ارسال"
+
+    text = models.TextField(
+        "متن پیامک",
+        help_text="همین متن برای همهٔ کاربران فرستاده می‌شود. متغیرهای مجاز: {site_name} و {site_url}. "
+        "پیامک طولانی چندبخشی فرستاده می‌شود و هر بخش جدا هزینه دارد.",
+    )
+    status = models.CharField("وضعیت", max_length=10, choices=Status.choices, default=Status.QUEUED, db_index=True)
+    recipients_count = models.PositiveIntegerField("تعداد گیرنده", default=0)
+    created_by = models.ForeignKey(
+        "accounts.User", verbose_name="فرستنده", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    created_at = models.DateTimeField("زمان ثبت", auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField("آخرین تغییر", auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        verbose_name = "پیامک گروهی"
+        verbose_name_plural = "پیامک‌های گروهی (به همهٔ کاربران)"
+
+    def __str__(self):
+        first_line = (self.text or "").strip().splitlines()[0] if (self.text or "").strip() else ""
+        return first_line[:40] or f"پیامک گروهی {self.pk}"
+
+    def clean(self):
+        if not (self.text or "").strip():
+            raise ValidationError({"text": "متن پیامک را بنویسید."})
+        try:
+            used = {name for _, name, _, _ in string.Formatter().parse(self.text) if name is not None}
+        except ValueError:
+            raise ValidationError(
+                {"text": "آکولادهای متن درست باز و بسته نشده‌اند. برای نوشتن خود آکولاد از {{ و }} استفاده کنید."}
+            ) from None
+        unknown = sorted(used - set(CAMPAIGN_VARS))
+        if unknown:
+            names = "، ".join("{" + n + "}" for n in unknown)
+            raise ValidationError({"text": f"متغیر {names} مجاز نیست. متغیرهای مجاز: {{site_name}} و {{site_url}}"})

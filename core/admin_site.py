@@ -38,7 +38,7 @@ ADMIN_GROUPS = [
         "محتوای سایت",
         [("core", "banner", None), ("core", "staticpage", None), ("seo", "redirect", None)],
     ),
-    ("پیامک", [("notifications", "smslog", None), ("notifications", "smstemplate", "پیامک‌های ارسالی (متن و فعال/غیرفعال)")]),
+    ("پیامک", [("notifications", "smscampaign", None), ("notifications", "smslog", None), ("notifications", "smstemplate", "پیامک‌های ارسالی (متن و فعال/غیرفعال)")]),
     ("تنظیمات", [("core", "sitesettings", None)]),
     (
         "کاربران و امنیت",
