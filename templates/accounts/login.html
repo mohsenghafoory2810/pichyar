@@ -7,9 +7,25 @@
   <div>
     <h1 id="login-title" class="text-2xl font-extrabold">ورود / ثبت‌نام</h1>
     <p class="mt-2 text-sm leading-7 text-ink-soft">
-      شمارهٔ موبایل خود را وارد کنید تا کد تأیید برایتان پیامک شود. اگر حساب ندارید، خودکار ساخته می‌شود.
+      {% if method == "password" %}
+        با شمارهٔ موبایل و رمز عبوری که در حساب کاربری ساخته‌اید وارد شوید.
+      {% else %}
+        شمارهٔ موبایل خود را وارد کنید تا کد تأیید برایتان پیامک شود. اگر حساب ندارید، خودکار ساخته می‌شود.
+      {% endif %}
     </p>
   </div>
-  {% include "accounts/_otp_box.html" %}
+  {% if password_enabled %}
+  <nav class="grid grid-cols-2 gap-1 rounded-xl bg-ink/5 p-1 text-center text-sm font-medium" aria-label="روش ورود">
+    <a href="{% url 'accounts:login' %}?method=otp&amp;next={{ next|urlencode }}"
+       class="rounded-lg px-3 py-2 {% if method != 'password' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if method != "password" %} aria-current="page"{% endif %}>کد پیامکی</a>
+    <a href="{% url 'accounts:login' %}?method=password&amp;next={{ next|urlencode }}"
+       class="rounded-lg px-3 py-2 {% if method == 'password' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if method == "password" %} aria-current="page"{% endif %}>رمز عبور</a>
+  </nav>
+  {% endif %}
+  {% if method == "password" %}
+    {% include "accounts/_password_box.html" %}
+  {% else %}
+    {% include "accounts/_otp_box.html" %}
+  {% endif %}
 </section>
 {% endblock %}

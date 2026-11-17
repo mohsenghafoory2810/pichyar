@@ -13,6 +13,9 @@
       <li><a href="{% url 'support:list' %}" class="flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 {% if tab == 'support' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if tab == 'support' %} aria-current="page"{% endif %}>پیام به پشتیبانی{% if support.unread %} <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-xs font-bold text-ink">{{ support.unread|fa_digits }}<span class="sr-only"> پاسخ خوانده‌نشده</span></span>{% endif %}</a></li>
       {% endif %}
       <li><a href="{% url 'accounts:profile' %}" class="block whitespace-nowrap rounded-xl px-3 py-2 {% if tab == 'profile' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if tab == 'profile' %} aria-current="page"{% endif %}>مشخصات</a></li>
+      {% if site_settings.password_login_enabled and not user.is_staff %}
+      <li><a href="{% url 'accounts:password' %}" class="block whitespace-nowrap rounded-xl px-3 py-2 {% if tab == 'password' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if tab == 'password' %} aria-current="page"{% endif %}>رمز عبور</a></li>
+      {% endif %}
       <li>
         <form method="post" action="{% url 'accounts:logout' %}">
           {% csrf_token %}

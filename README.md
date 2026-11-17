@@ -502,6 +502,8 @@ docker compose exec app python manage.py seed_products
 
 **محدودیت کد ورود:** هر کد ۵ رقمی ۲ دقیقه اعتبار دارد و ۵ بار اشتباه وارد کردن آن را باطل می‌کند. بین دو درخواست کد برای یک شماره دست‌کم ۶۰ ثانیه فاصله لازم است. در هر ساعت برای هر شماره حداکثر ۵ کد و از هر آی‌پی حداکثر ۱۵ کد فرستاده می‌شود (قابل تغییر در `.env`: `OTP_MAX_PER_MOBILE_PER_HOUR` و `OTP_MAX_PER_IP_PER_HOUR`).
 
+**ورود با رمز عبور (اختیاری):** در «تنظیمات سایت ← ۱۱. ورود مشتریان» روشن می‌شود (پیش‌فرض خاموش). با روشن بودن، صفحهٔ ورود دو زبانه دارد: «کد پیامکی» و «رمز عبور». ورود و ثبت‌نام بار اول همیشه با کد پیامکی است: مشتری فقط پس از ورود با کد، از «حساب کاربری ← رمز عبور» رمز می‌سازد، و رمزی که مدیر برای شماره‌ای که هنوز با کد تأیید نشده بگذارد کار نمی‌کند. تغییر رمز، رمز فعلی را می‌خواهد مگر تا ۱۰ دقیقه پس از ورود با کد پیامکی (راه بازیابی رمز فراموش‌شده)، و بقیهٔ نشست‌های آن حساب را می‌بندد. پیام خطا نمی‌گوید شماره حساب دارد یا نه. ۵ رمز اشتباه برای یک شماره، ورود با رمز آن شماره را ۱۵ دقیقه و ۲۰ رمز اشتباه از یک آی‌پی، ورود با رمز آن آی‌پی را یک ساعت می‌بندد؛ ورود با کد پیامکی و ورود مدیران (django-axes) از این قفل جدا هستند (`.env`: `PASSWORD_LOGIN_MAX_FAILS_PER_MOBILE`، `PASSWORD_LOGIN_LOCK_MINUTES`، `PASSWORD_LOGIN_MAX_FAILS_PER_IP_PER_HOUR`). رمز مدیران فقط از پنل مدیریت تغییر می‌کند.
+
 ### هزینهٔ ارسال (فقط پست)
 
 در **تنظیمات سایت ← هزینهٔ ارسال (پست)** سه خانه هست:
@@ -786,9 +788,9 @@ config/settings/{base,dev,prod,test}.py   settings per environment, read from .e
 core/          SiteSettings (singleton), BankCard, StaticPage, Banner, age gate, maintenance + security-header
                middleware, Persian filters, backup/restore, worker tasks; admin_site.py (ShopAdminSite: dashboard,
                sidebar groups ADMIN_GROUPS, password+TOTP login, access rules), admin_config.py (its AdminConfig)
-accounts/      User (mobile = username, name), Customer (proxy, non-staff), Address, OTPCode; otp.py (SMS codes),
+accounts/      User (mobile = username, name), Customer (proxy, non-staff), Address, OTPCode, PasswordLoginFailure; otp.py (SMS codes),
                flows.py (mobile→code box shared by login and guest checkout); login, user panel; backends.py
-               (SMSCodeBackend), admin_forms.py (admin login + TOTP), admin_views.py (2FA setup page),
+               (SMSCodeBackend, StorefrontPasswordBackend), password_login.py (optional password login + lockout), admin_forms.py (admin login + TOTP), admin_views.py (2FA setup page),
                admin for users/customers/TOTP devices/axes lockouts; disable_2fa command
 catalog/       Category (2 levels), Product, ProductImage (-> WebP), PriceChangeLog; storefront views;
                admin (list edit, Excel import/export, bulk price); stock.py (reserve/release);
@@ -912,6 +914,9 @@ Admin internals: `ShopAdminSite.get_app_list` regroups models by `core.admin_sit
 | `RECEIPT_MAX_MB` | `5` | Max size of a card-to-card receipt |
 | `OTP_MAX_PER_MOBILE_PER_HOUR` | `5` | SMS codes per mobile per hour |
 | `OTP_MAX_PER_IP_PER_HOUR` | `15` | SMS codes per IP per hour |
+| `PASSWORD_LOGIN_MAX_FAILS_PER_MOBILE` | `5` | wrong storefront passwords that lock a mobile's password login |
+| `PASSWORD_LOGIN_LOCK_MINUTES` | `15` | how long that lock lasts |
+| `PASSWORD_LOGIN_MAX_FAILS_PER_IP_PER_HOUR` | `20` | wrong storefront passwords per IP per hour |
 | `AXES_FAILURE_LIMIT` | `5` | Wrong admin passwords/2FA codes per IP before the lockout |
 | `AXES_COOLOFF_HOURS` | `1` | Lockout duration |
 | `OTP_TOTP_ISSUER` | `Pichyar` | Name shown in the authenticator app |
@@ -972,7 +977,7 @@ SMS provider, payment gateway, card numbers, shipping and gifts are **not** envi
 - **Tracking codes** are accepted as 6–40 characters of `0-9 A-Z a-z -` (Persian digits and spaces are normalised); Iran Post codes are usually 20–24 digits.
 - **Packing slip** is a standalone print page (A5 per order, address label on top, items with gifts and a check box). It contains no prices (it goes into the parcel).
 - **Customers admin** is a proxy of `User` limited to non-staff accounts; its totals and history include earlier guest orders with the same mobile (same rule as the user panel). Guest buyers without an account appear only in Orders.
-- **Admin login** is mobile + password; django-axes counts failures per IP (5 → 1 hour, reset on success), and a wrong TOTP code also counts. Sessions started with the storefront SMS login carry `accounts.backends.SMSCodeBackend` and are not accepted by the admin, so an SMS code alone never opens the admin. TOTP (django-otp) is optional per admin; once a user has a confirmed device, every admin session of that user must be OTP-verified. django-otp's own throttling (1 s, 2 s, 4 s… after wrong codes) stays on.
+- **Admin login** is mobile + password; django-axes counts failures per IP (5 → 1 hour, reset on success), and a wrong TOTP code also counts. Sessions started with the storefront SMS login carry `accounts.backends.SMSCodeBackend` (storefront password login: `StorefrontPasswordBackend`, with its own lockout in `accounts/password_login.py`, separate from axes) and are not accepted by the admin, so a storefront sign-in never opens the admin. TOTP (django-otp) is optional per admin; once a user has a confirmed device, every admin session of that user must be OTP-verified. django-otp's own throttling (1 s, 2 s, 4 s… after wrong codes) stays on.
 - **Third-party admins** (django-q2, django-axes, django-otp) have no Persian translations; they were replaced by small Persian list-only admins (failed background jobs, login lockouts, 2FA devices) and the technical ones (successful tasks, schedules, queue) are hidden. Their sidebar names come from `ADMIN_GROUPS`; model metadata is not patched (that would create migrations inside those packages).
 - **Secrets in SiteSettings** (SMS API key, gateway merchant id) are stored in the database as before but never rendered back into the page: the field shows a mask (last 4 characters), empty keeps the value, a checkbox clears it. They are not encrypted at rest; the database file is only readable inside the container and its backups.
 - **Security headers:** Django sets HSTS, nosniff, `Referrer-Policy: same-origin`, COOP, `X-Frame-Options: DENY`; `core.middleware.SecurityHeadersMiddleware` adds a Content-Security-Policy (everything `'self'`; `'unsafe-inline'` for scripts/styles because the Django admin and TinyMCE need it; `frame-ancestors 'none'`) and a Permissions-Policy. Caddy limits request bodies to 20 MB and serves `/media/` with a sandboxing CSP. `form-action` is not restricted, because the payment start view redirects a POST to the gateway.

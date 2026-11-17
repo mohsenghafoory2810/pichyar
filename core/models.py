@@ -288,6 +288,15 @@ class SiteSettings(models.Model):
     )
     messenger_button_label = models.CharField("عنوان دکمهٔ شناور", max_length=40, default="پشتیبانی", blank=True)
 
+    # Customer sign-in (accounts.views.login_view): the SMS code always works; this adds a password.
+    password_login_enabled = models.BooleanField(
+        "ورود با رمز عبور",
+        default=False,
+        help_text="اگر روشن باشد، مشتری می‌تواند از «حساب کاربری ← رمز عبور» برای خود رمز بسازد و از آن پس با موبایل و رمز وارد شود. "
+        "ورود و ثبت‌نام بار اول همیشه با کد پیامکی است و ورود با کد پیامکی همیشه در دسترس می‌ماند (مثلاً برای فراموشی رمز). "
+        "خاموش کردن، رمزهای ساخته‌شده را پاک نمی‌کند؛ فقط ورود با رمز بسته می‌شود.",
+    )
+
     class Meta:
         verbose_name = "تنظیمات سایت"
         verbose_name_plural = "تنظیمات سایت"

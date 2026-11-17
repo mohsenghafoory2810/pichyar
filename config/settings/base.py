@@ -113,12 +113,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "accounts.User"
 # Axes must come first: it blocks locked-out admin logins before the password is checked.
-# Customers sign in with an SMS code through accounts.backends.SMSCodeBackend, which the
-# admin site does not accept (core.admin_site): the admin always needs the password.
+# Customers sign in with an SMS code (accounts.backends.SMSCodeBackend) or, when the admin
+# turned it on, with a password (StorefrontPasswordBackend). The admin site accepts neither
+# session (core.admin_site): the admin always needs its own login.
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
     "accounts.backends.SMSCodeBackend",
+    "accounts.backends.StorefrontPasswordBackend",
 ]
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "accounts:orders"
@@ -167,6 +169,13 @@ OTP_MAX_ATTEMPTS = 5
 OTP_RESEND_COOLDOWN = 60
 OTP_MAX_PER_MOBILE_PER_HOUR = env.int("OTP_MAX_PER_MOBILE_PER_HOUR", default=5)
 OTP_MAX_PER_IP_PER_HOUR = env.int("OTP_MAX_PER_IP_PER_HOUR", default=15)
+# Storefront password login (accounts.password_login): wrong passwords lock the password
+# login (never the SMS-code login) of a mobile for a window, and of an IP for an hour.
+PASSWORD_LOGIN_MAX_FAILS_PER_MOBILE = env.int("PASSWORD_LOGIN_MAX_FAILS_PER_MOBILE", default=5)
+PASSWORD_LOGIN_LOCK_MINUTES = env.int("PASSWORD_LOGIN_LOCK_MINUTES", default=15)
+PASSWORD_LOGIN_MAX_FAILS_PER_IP_PER_HOUR = env.int("PASSWORD_LOGIN_MAX_FAILS_PER_IP_PER_HOUR", default=20)
+# Setting a new password without the current one needs an SMS-code login this recent.
+PASSWORD_SET_RECENT_SMS_LOGIN_SECONDS = 10 * 60
 PAYMENT_GATEWAY_TIMEOUT = 15  # seconds
 SMS_PROVIDER_TIMEOUT = 10  # seconds
 

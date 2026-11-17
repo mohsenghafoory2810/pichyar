@@ -5,7 +5,7 @@
 - login: mobile + password, plus the 6-digit code for accounts that turned on two-step
   login (django-otp TOTP). Failed passwords and codes are counted by django-axes.
 - has_permission: an admin session must come from that login. A staff member signed in
-  on the storefront with an SMS code (accounts.backends.SMSCodeBackend) is a customer
+  on the storefront (SMS code or storefront password, accounts.backends) is a customer
   there and gets the admin login page; with 2FA on, the session must be OTP-verified.
 """
 
@@ -14,6 +14,7 @@ from django.contrib.auth import BACKEND_SESSION_KEY
 from django.urls import NoReverseMatch, path, reverse
 
 SMS_BACKEND = "accounts.backends.SMSCodeBackend"
+STOREFRONT_BACKENDS = {SMS_BACKEND, "accounts.backends.StorefrontPasswordBackend"}
 
 # (title, [(app_label, model_name, label or None), ...]) — label overrides verbose_name_plural.
 ADMIN_GROUPS = [
@@ -69,7 +70,7 @@ class ShopAdminSite(admin.AdminSite):
     def has_permission(self, request):
         if not super().has_permission(request):
             return False
-        if request.session.get(BACKEND_SESSION_KEY) == SMS_BACKEND:
+        if request.session.get(BACKEND_SESSION_KEY) in STOREFRONT_BACKENDS:
             return False
         from django_otp import user_has_device
 

@@ -45,6 +45,13 @@ class User(AbstractUser):
         error_messages={"unique": "کاربری با این شمارهٔ موبایل وجود دارد."},
     )
     name = models.CharField("نام و نام خانوادگی", max_length=100, blank=True)
+    mobile_verified_at = models.DateTimeField(
+        "تأیید موبایل با کد پیامکی",
+        null=True,
+        blank=True,
+        editable=False,
+        help_text="آخرین ورود با کد پیامکی. ورود با رمز عبور فقط پس از دست‌کم یک بار تأیید موبایل ممکن است.",
+    )
 
     USERNAME_FIELD = "mobile"
     REQUIRED_FIELDS = []
@@ -145,3 +152,24 @@ class OTPCode(models.Model):
 
     def __str__(self):
         return f"{self.mobile} ({self.get_purpose_display()})"
+
+
+class PasswordLoginFailure(models.Model):
+    """One wrong storefront password (accounts.password_login). Recent rows lock the password
+    login of that mobile / IP for a while; the SMS-code login is never locked by them."""
+
+    mobile = models.CharField("شمارهٔ موبایل", max_length=11)
+    ip = models.GenericIPAddressField("آی‌پی", null=True, blank=True)
+    created_at = models.DateTimeField("زمان", default=timezone.now)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        verbose_name = "رمز عبور اشتباه"
+        verbose_name_plural = "رمزهای عبور اشتباه"
+        indexes = [
+            models.Index(fields=["mobile", "created_at"]),
+            models.Index(fields=["ip", "created_at"]),
+        ]
+
+    def __str__(self):
+        return self.mobile
