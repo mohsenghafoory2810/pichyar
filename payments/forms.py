@@ -16,9 +16,9 @@ class CardTransferForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "input", "dir": "ltr", "inputmode": "numeric", "autocomplete": "off"}),
     )
     receipt = forms.ImageField(
-        label="تصویر رسید (اختیاری)",
-        required=False,
+        label="تصویر رسید",
         help_text="JPG، PNG یا WebP",
+        error_messages={"required": "لطفاً تصویر رسید واریز را بارگذاری کنید."},
         widget=forms.ClearableFileInput(attrs={"accept": "image/jpeg,image/png,image/webp", "class": "input"}),
     )
 

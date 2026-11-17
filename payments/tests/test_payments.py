@@ -302,7 +302,7 @@ class CardToCardTests(TestCase):
         response = self.client.get(self.order.get_absolute_url())
         self.assertContains(response, "۶۰۳۷-۹۹۱۲-۳۴۵۶-۷۸۹۰")
         self.assertContains(response, "به نام فروشگاه")
-        self.client.post(self.url, {"tracking_number": "987654"})
+        self.client.post(self.url, {"tracking_number": "987654", "receipt": image_upload("r.png", "PNG", (40, 30))})
         self.assertNotContains(self.client.get(self.order.get_absolute_url()), "۶۰۳۷-۹۹۱۲-۳۴۵۶-۷۸۹۰")
 
     def test_submit_with_receipt(self):
@@ -322,10 +322,12 @@ class CardToCardTests(TestCase):
         self.client.force_login(get_user_model().objects.create_user("09120000001", password="x", is_staff=True))
         self.assertEqual(self.client.get(reverse("payments:receipt", args=[payment.pk])).status_code, 200)
 
-    def test_receipt_is_optional(self):
-        self.client.post(self.url, {"tracking_number": "123456"})
+    def test_receipt_is_required(self):
+        response = self.client.post(self.url, {"tracking_number": "123456"})
+        self.assertContains(response, "لطفاً تصویر رسید واریز را بارگذاری کنید.")
+        self.assertFalse(Payment.objects.exists())
         self.order.refresh_from_db()
-        self.assertEqual(self.order.status, OrderStatus.AWAITING_APPROVAL)
+        self.assertNotEqual(self.order.status, OrderStatus.AWAITING_APPROVAL)
 
     def test_invalid_receipt_type(self):
         fake = SimpleUploadedFile("r.png", b"not an image", content_type="image/png")
@@ -349,7 +351,7 @@ class CardToCardTests(TestCase):
         self.assertContains(response, "کد پیگیری معتبر نیست")
 
     def test_second_submission_is_not_possible(self):
-        self.client.post(self.url, {"tracking_number": "123456"})
+        self.client.post(self.url, {"tracking_number": "123456", "receipt": image_upload("r.png", "PNG", (40, 30))})
         response = self.client.get(self.url)
         self.assertRedirects(response, self.order.get_absolute_url(), fetch_redirect_response=False)
         with self.assertRaises(services.PaymentError):
