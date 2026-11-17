@@ -55,21 +55,21 @@ html[data-theme="dark"] #result_list tr:has(.stock-out) td { background: #3D1714
 
 /* --- Dashboard (admin home) --- */
 .dash { margin-bottom: 24px; }
-.dash-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.dash-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 12px; margin-bottom: 16px; }
 .dash-tile { display: block; padding: 14px 16px; border: 1px solid var(--hairline-color); border-radius: 10px; background: var(--body-bg); color: var(--body-fg); }
 a.dash-tile:hover, a.dash-tile:focus { border-color: var(--c-gold); text-decoration: none; }
 .dash-tile-label { font-size: 13px; color: var(--body-quiet-color); }
 .dash-tile-value { font-size: 22px; font-weight: 800; margin: 4px 0; }
 .dash-tile-sub { font-size: 12px; color: var(--body-quiet-color); }
 .dash-tile-action.is-hot { border-color: var(--c-gold); box-shadow: inset 4px 0 0 var(--c-gold); }
-.dash-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.dash-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 12px; }
 .dash-cols .module, .dash-chart { margin-bottom: 0; }
 .dash-chart { margin-bottom: 16px; padding-bottom: 8px; }
 .dash-chart .help, .dash-chart details { padding: 0 12px; }
 .dash-table { width: 100%; }
 .dash-empty { padding: 8px 12px; color: var(--body-quiet-color); }
 /* Sales chart: one series, one hue (validated: light #2F6FA8, dark #4F86C0), recessive axis. */
-.sales-svg { --bar: #2F6FA8; width: 100%; height: 200px; display: block; padding: 8px 12px 0; }
+.sales-svg { --bar: #2F6FA8; width: 100%; height: 200px; display: block; padding: 8px 12px 0; box-sizing: border-box; }
 .sales-svg .bar { fill: var(--bar); }
 .sales-svg .hit { fill: transparent; }
 .sales-svg .bar-slot:hover .hit { fill: var(--hairline-color); }
@@ -85,11 +85,11 @@ html[data-theme="dark"] .sales-svg { --bar: #4F86C0; }
 .order-action { padding: 10px 12px; border-bottom: 1px solid var(--hairline-color); }
 .order-action:last-child { border-bottom: 0; }
 .order-action form { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 0 12px; }
-.order-action input[type="text"], .order-action input:not([type]) { min-width: 16em; }
+.order-action input[type="text"], .order-action input:not([type]) { min-width: min(16em, 100%); max-width: 100%; box-sizing: border-box; }
 .order-action .help { margin: 6px 0 0; }
 .button.danger, input.danger { background: var(--c-error); color: #fff; }
 .button.danger:hover { background: #8E1B12; }
-.order-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.order-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 12px; }
 .order-grid .module { margin-bottom: 0; }
 .order-detail .module { margin-bottom: 12px; }
 .order-table { width: 100%; }
@@ -104,7 +104,7 @@ html[data-theme="dark"] .sales-svg { --bar: #4F86C0; }
 /* --- Two-step login page --- */
 .two-factor .module { padding-bottom: 12px; }
 .two-factor .module > p, .two-factor ol { padding: 0 12px; }
-.qr-box { width: 220px; margin: 8px 12px; background: #fff; padding: 8px; border-radius: 8px; }
+.qr-box { width: 220px; max-width: calc(100% - 24px); box-sizing: border-box; margin: 8px 12px; background: #fff; padding: 8px; border-radius: 8px; }
 .qr-box svg { width: 100%; height: auto; display: block; }
 .secret { font-size: 15px; letter-spacing: .08em; }
 
@@ -115,3 +115,17 @@ html[data-theme="dark"] .sales-svg { --bar: #4F86C0; }
 .sms-overview td { padding: 4px 10px; }
 .sms-state.sms-on { color: #2e7d32; font-weight: 700; }
 .sms-state.sms-off { color: var(--error-fg, #ba2121); font-weight: 700; }
+
+/* --- Small screens (phones) --- */
+/* Wide tables scroll inside their box instead of widening the whole page. */
+.module:has(> table.dash-table), .module:has(> table.order-table), .module:has(> table.bulk-price-preview),
+.dash-chart, .readonly:has(> table.order-table) { overflow-x: auto; max-width: 100%; }
+.dash-cols > *, .order-grid > *, .dash-tiles > * { min-width: 0; }
+.order-dl dd { overflow-wrap: anywhere; }
+@media (max-width: 767px) {
+  .order-action form { margin: 8px 0 0; }
+  .order-dl { grid-template-columns: 1fr; gap: 2px 0; }
+  .order-dl dd { margin-bottom: 8px; }
+  .receipt-thumb { max-width: 100%; }
+  .bulk-price-preview { min-width: 0; }
+}

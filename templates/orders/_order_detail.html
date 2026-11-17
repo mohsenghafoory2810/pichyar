@@ -72,7 +72,7 @@
     <div class="mt-4 md:ms-auto md:max-w-sm">{% include "orders/_summary.html" with breakdown=order hide_shipping_rule=True discount_label=order.discount_code_text %}</div>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-2">
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
     <div class="card p-4 text-sm leading-7">
       <h3 class="mb-2 font-bold">گیرنده</h3>
       <p>{{ order.recipient_name }} — <bdi dir="ltr">{{ order.recipient_mobile|fa_digits }}</bdi></p>

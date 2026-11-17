@@ -6,9 +6,9 @@
 {% block content %}
 {% include "partials/breadcrumbs.html" %}
 
-<div class="grid gap-6 md:grid-cols-2 md:gap-10">
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10">
   {# --- Gallery: swipe on mobile, thumbnails switch the slide --- #}
-  <section aria-label="تصویرهای محصول" data-gallery>
+  <section class="min-w-0" aria-label="تصویرهای محصول" data-gallery>
     <div class="card overflow-hidden">
       <div class="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]" data-gallery-track>
         {% for img in images %}
@@ -22,7 +22,7 @@
       </div>
     </div>
     {% if images|length > 1 %}
-    <div class="mt-3 flex gap-2 overflow-x-auto pb-1">
+    <div class="mt-3 flex gap-2 overflow-x-auto overscroll-x-contain pb-1">
       {% for img in images %}
         <button type="button" data-gallery-thumb="{{ forloop.counter0 }}" aria-label="نمایش تصویر {{ forloop.counter|fa_digits }}"
                 class="h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 {% if forloop.first %}border-ink{% else %}border-line{% endif %}">
@@ -34,7 +34,7 @@
   </section>
 
   {# --- Info --- #}
-  <section aria-labelledby="product-title">
+  <section class="min-w-0" aria-labelledby="product-title">
     <h1 id="product-title" class="text-2xl font-extrabold leading-10 md:text-3xl">{{ product.name }}</h1>
     <div class="mt-3 flex flex-wrap items-center gap-3">
       {% include "catalog/_stock_badge.html" %}
@@ -111,7 +111,7 @@
 {% if related_articles %}
 <section class="mt-12" aria-labelledby="related-articles-title">
   <h2 id="related-articles-title" class="mb-4 text-xl font-extrabold">مقاله‌های مرتبط</h2>
-  <ul class="grid gap-3 md:grid-cols-2">
+  <ul class="grid grid-cols-1 gap-3 md:grid-cols-2">
     {% for article in related_articles %}
       <li class="card p-4">
         <a href="{{ article.get_absolute_url }}" class="font-bold leading-7 hover:underline">{{ article.title }}</a>

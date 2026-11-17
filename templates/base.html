@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}{{ page_meta.title|default:site_settings.site_name }}{% endblock %}</title>
   {% if page_meta.description %}<meta name="description" content="{% block meta_description %}{{ page_meta.description }}{% endblock %}">{% endif %}
   <meta name="robots" content="{% block robots %}{{ page_meta.robots }}{% endblock %}">
@@ -46,7 +46,7 @@
   <div id="page" class="flex min-h-screen flex-col">
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:right-2 focus:z-40 focus:rounded-lg focus:bg-gold focus:px-4 focus:py-2 focus:text-ink">پرش به محتوای اصلی</a>
     {% include "partials/header.html" %}
-    <main id="main" class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-24 md:pb-10">
+    <main id="main" class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-10">
       {% include "partials/messages.html" %}
       {% block content %}{% endblock %}
     </main>

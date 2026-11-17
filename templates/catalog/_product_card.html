@@ -14,7 +14,7 @@
       <h3 class="line-clamp-2 font-bold leading-6">{{ product.name }}</h3>
       <p class="mt-1 text-xs text-ink-soft">{{ product.unit }}</p>
       {% include "reviews/_card_rating.html" %}
-      <p class="mt-auto pt-2 text-lg font-extrabold{% if not product.in_stock %} text-ink-soft{% endif %}">{{ product.price|toman }}</p>
+      <p class="mt-auto pt-2 text-base font-extrabold sm:text-lg{% if not product.in_stock %} text-ink-soft{% endif %}">{{ product.price|toman }}</p>
     </div>
   </a>
 </article>

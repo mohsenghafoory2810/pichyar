@@ -92,7 +92,7 @@
 {% if related_articles %}
   <section id="related-articles" aria-labelledby="related-articles-title" class="mt-12">
     <h2 id="related-articles-title" class="mb-4 text-xl font-extrabold">مقاله‌های مرتبط</h2>
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {% for article in related_articles %}
         {% include "blog/_article_card.html" with htag="h3" %}
       {% endfor %}

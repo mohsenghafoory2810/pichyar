@@ -8,7 +8,7 @@ with HTMX «نظرهای بیشتر» appends the next page from reviews:list.{%
 
   {% if rv.summary %}
   {% with s=rv.summary %}
-  <div class="grid gap-6 md:grid-cols-3">
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
     <div class="card self-start p-4">
       <p class="flex items-baseline gap-2">
         <span class="text-4xl font-extrabold">{{ s.average|fa_rating }}</span>

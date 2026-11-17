@@ -23,6 +23,19 @@
 @layer base {
   :focus-visible { outline: 3px solid var(--c-navy); outline-offset: 2px; }
   header :focus-visible, footer.dark :focus-visible { outline-color: var(--c-gold); }
+  /* Mobile/desktop robustness (Android, iOS Safari, Windows browsers). */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+  /* The viewport uses viewport-fit=cover: keep content clear of the notch in landscape. */
+  body { overflow-wrap: break-word; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+  /* 100vh is taller than the visible area on mobile browsers (address bar); dvh is the real height. */
+  #page { min-height: 100vh; min-height: 100dvh; }
+  /* iOS Safari zooms into any field whose text is smaller than 16px. */
+  input, select, textarea { font-size: max(1rem, 1em); }
+  /* No number spinners (Chrome/Edge on Windows draw them inside the narrow quantity boxes). */
+  input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  iframe, video, embed, object { max-width: 100%; }
 }
 
 @layer components {
@@ -51,11 +64,21 @@
   .rich-text ul { @apply mb-4 list-disc ps-6; }
   .rich-text ol { @apply mb-4 list-decimal ps-6; }
   .rich-text a { @apply font-medium text-navy underline underline-offset-4; }
+  /* Editor (TinyMCE) content often carries fixed widths: keep it inside the screen. */
+  .rich-text { overflow-wrap: anywhere; }
+  .rich-text img { max-width: 100%; height: auto; }
+  .rich-text iframe, .rich-text video { max-width: 100%; }
+  .rich-text table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin-bottom: 1rem; }
+  .rich-text th, .rich-text td { border: 1px solid var(--c-border); padding: 0.5rem 0.75rem; }
+  .rich-text pre { max-width: 100%; overflow-x: auto; }
+  .rich-text [style*="width"] { max-width: 100%; }
+  /* Fixed bottom bars: stay above the iPhone home indicator. */
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   /* Floating support button (templates/partials/support_button.html). Plain CSS, so it also works
      with a stale local app.css; on mobile it sits above the fixed bottom bar (md:hidden, ~64px). */
-  .support-fab { position: fixed; bottom: 5rem; z-index: 35; font-size: 0.875rem; }
-  .support-fab--left { left: 1rem; }
-  .support-fab--right { right: 1rem; }
+  .support-fab { position: fixed; bottom: calc(5rem + env(safe-area-inset-bottom)); z-index: 35; font-size: 0.875rem; }
+  .support-fab--left { left: calc(1rem + env(safe-area-inset-left)); }
+  .support-fab--right { right: calc(1rem + env(safe-area-inset-right)); }
   .support-fab__toggle {
     display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.1rem; border-radius: 9999px;
     font: inherit; background: var(--c-ink); color: var(--c-cream); font-weight: 700; cursor: pointer;
@@ -86,6 +109,6 @@
   .messenger-link { display: inline-flex; align-items: center; gap: 0.5rem; }
   .messenger-link .messenger-icon { width: 1.5rem; height: 1.5rem; }
   .messenger-link .messenger-icon svg { width: 1rem; height: 1rem; }
-  @media (min-width: 48rem) { .support-fab { bottom: 1.5rem; } }
+  @media (min-width: 48rem) { .support-fab { bottom: calc(1.5rem + env(safe-area-inset-bottom)); } }
   @media print { .support-fab { display: none; } }
 }

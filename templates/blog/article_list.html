@@ -11,7 +11,7 @@
 </header>
 
 {% if articles %}
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for article in articles %}
       {% include "blog/_article_card.html" with htag="h2" %}
     {% endfor %}

@@ -8,7 +8,7 @@
   {% if can_add %}<a href="{% url 'accounts:address_add' %}" class="btn-cta">افزودن نشانی</a>{% endif %}
 </div>
 {% if addresses %}
-<ul class="grid gap-3 md:grid-cols-2">
+<ul class="grid grid-cols-1 gap-3 md:grid-cols-2">
   {% for a in addresses %}
   <li class="card flex flex-col gap-2 p-4 text-sm leading-7">
     <p class="font-bold">{{ a.recipient_name }} — <bdi dir="ltr">{{ a.recipient_mobile|fa_digits }}</bdi></p>

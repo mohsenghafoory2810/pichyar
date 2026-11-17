@@ -4,7 +4,7 @@
 
 {% block panel %}
 <h1 class="mb-4 text-2xl font-extrabold">{% if address %}ویرایش نشانی{% else %}افزودن نشانی{% endif %}</h1>
-<form method="post" class="card grid gap-4 p-4 md:grid-cols-2" novalidate>
+<form method="post" class="card grid grid-cols-1 gap-4 p-4 md:grid-cols-2" novalidate>
   {% csrf_token %}
   {% for error in form.non_field_errors %}<p class="alert-error md:col-span-2">{{ error }}</p>{% endfor %}
   {% for field in form %}

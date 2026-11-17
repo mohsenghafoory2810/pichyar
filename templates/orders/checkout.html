@@ -13,7 +13,7 @@
 </div>
 {% endif %}
 
-<div class="grid gap-6 md:grid-cols-3">
+<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
   <div class="space-y-6 md:col-span-2">
     <section class="card space-y-3 p-4" aria-labelledby="step-mobile">
       <h2 id="step-mobile" class="text-lg font-bold">۱. شمارهٔ موبایل</h2>
@@ -65,7 +65,7 @@
             این سفارش {{ breakdown.gifts_earned|fa_digits }} هدیه دارد{% if form.gift_slots < breakdown.gifts_earned %}، ولی فعلاً فقط {{ form.gift_slots|fa_digits }} هدیه موجود است{% endif %}.
             هر هدیه را انتخاب کنید؛ یک کالا را می‌توانید چند بار انتخاب کنید.
           </p>
-          <div class="grid gap-3 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {% for field in form.gift_fields %}{% include "partials/form_field.html" with field=field %}{% endfor %}
           </div>
         </section>
@@ -118,13 +118,13 @@
 {% endblock %}
 
 {% block bottom_bar %}
-<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur md:hidden">
+<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur safe-bottom md:hidden">
   <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
-    <div class="leading-5">
+    <div class="shrink-0 leading-5">
       <span class="block text-xs text-ink-soft">مبلغ قابل پرداخت</span>
-      <span class="font-extrabold" id="bottom-pay-total">{{ breakdown.total|toman }}</span>
+      <span class="whitespace-nowrap font-extrabold" id="bottom-pay-total">{{ breakdown.total|toman }}</span>
     </div>
-    <button type="submit" form="checkout-form" class="btn-pay ms-auto flex-1 py-2.5"{% if problems or not methods %} disabled{% endif %}>ثبت سفارش</button>
+    <button type="submit" form="checkout-form" class="btn-pay ms-auto min-w-0 flex-1 whitespace-nowrap px-3 py-2.5"{% if problems or not methods %} disabled{% endif %}>ثبت سفارش</button>
   </div>
 </div>
 {% endblock %}

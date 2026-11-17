@@ -1,7 +1,7 @@
 <div id="cart-body">
   {% if cart_error %}<p class="alert-error mb-4" role="alert">{{ cart_error }}</p>{% endif %}
   {% if lines %}
-  <div class="grid gap-6 md:grid-cols-3">
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
     <ul class="space-y-3 md:col-span-2" aria-label="کالاهای سبد">
       {% for line in lines %}
       {% with product=line.product img=line.product.main_image %}

@@ -15,8 +15,10 @@
     thumbs.forEach(function (thumb) {
       thumb.addEventListener("click", function () {
         var i = Number(thumb.dataset.galleryThumb);
-        var slide = track.children[i];
-        if (slide) track.scrollTo({ left: slide.offsetLeft - track.offsetLeft, behavior: "smooth" });
+        // Every slide is one track wide. In RTL pages scrollLeft runs from 0 to negative values.
+        var rtl = getComputedStyle(track).direction === "rtl";
+        var left = i * track.clientWidth * (rtl ? -1 : 1);
+        if (track.children[i]) track.scrollTo({ left: left, behavior: "smooth" });
         mark(i);
       });
     });

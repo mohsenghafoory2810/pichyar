@@ -2,10 +2,10 @@
 {% load support_tags %}
 
 {% block content %}
-<div class="grid gap-6 md:grid-cols-4">
-  <nav class="card h-fit p-2" aria-label="حساب کاربری">
+<div class="grid grid-cols-1 gap-6 md:grid-cols-4">
+  <nav class="card h-fit min-w-0 p-2" aria-label="حساب کاربری">
     <p class="px-3 py-2 font-bold">{% if user.name %}{{ user.name }}{% else %}<bdi dir="ltr">{{ user.mobile|fa_digits }}</bdi>{% endif %}</p>
-    <ul class="flex gap-1 overflow-x-auto md:flex-col">
+    <ul class="flex gap-1 overflow-x-auto [scrollbar-width:none] md:flex-col">
       <li><a href="{% url 'accounts:orders' %}" class="block whitespace-nowrap rounded-xl px-3 py-2 {% if tab == 'orders' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if tab == 'orders' %} aria-current="page"{% endif %}>سفارش‌ها</a></li>
       <li><a href="{% url 'accounts:addresses' %}" class="block whitespace-nowrap rounded-xl px-3 py-2 {% if tab == 'addresses' %}bg-ink text-cream{% else %}hover:bg-ink/5{% endif %}"{% if tab == 'addresses' %} aria-current="page"{% endif %}>نشانی‌ها</a></li>
       {% support_tab user as support %}
@@ -21,7 +21,7 @@
       </li>
     </ul>
   </nav>
-  <section class="md:col-span-3">
+  <section class="min-w-0 md:col-span-3">
     {% block panel %}{% endblock %}
   </section>
 </div>

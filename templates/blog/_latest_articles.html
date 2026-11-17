@@ -5,7 +5,7 @@
     <h2 id="latest-articles-title" class="text-xl font-extrabold">تازه‌ترین مقاله‌ها</h2>
     <a href="{% url 'blog:list' %}" class="link text-sm">همهٔ مقاله‌ها</a>
   </div>
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for article in latest_articles %}
       {% include "blog/_article_card.html" with htag="h3" %}
     {% endfor %}
