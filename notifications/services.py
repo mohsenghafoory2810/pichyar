@@ -3,7 +3,7 @@
     send_sms(mobile, template_key, context)   render an SMSTemplate and queue it (skipped when the
                                               template is switched off); never raises
     send_text(mobile, text, template_key="")  queue a ready text; never raises
-    build_admin_order_text(order)             items, recipient and address of an order (shown on the
+    build_admin_order_text(order)             number, items, recipient and address of an order (shown on the
                                               admin order page to copy; not sent by SMS)
     notify_admin_new_order(order)             short "new order" SMS, once per order, when the customer
                                               finishes it (card receipt sent, or online payment paid)
@@ -181,21 +181,25 @@ def deliver_due():
 
 
 def build_admin_order_text(order):
-    """One line per item ("short_name quantity", gifts marked), then the recipient's name,
-    mobile, postal code and full postal address. Shown on the admin order page to copy."""
-    lines = []
+    """Labelled lines: order number, the items (one per line, "short_name quantity", gifts marked),
+    recipient's name, mobile, full postal address and postal code. Shown on the admin order page to copy."""
+    items = []
     for item in order.items.all():
         line = f"{item.short_name or item.name} {item.quantity}"
         if item.is_gift:
             line += " (هدیه)"
-        lines.append(line)
-    lines += [
-        order.recipient_name,
-        order.recipient_mobile,
-        order.postal_code,
-        f"{order.province}، {order.city}، {order.address}",
-    ]
-    return "\n".join(lines)
+        items.append(line)
+    return "\n".join(
+        [
+            f"شماره سفارش: {order.number}",
+            "سفارشات:",
+            *items,
+            f"نام گیرنده: {order.recipient_name}",
+            f"شماره موبایل: {order.recipient_mobile}",
+            f"آدرس: {order.province}، {order.city}، {order.address}",
+            f"کدپستی: {order.postal_code}",
+        ]
+    )
 
 
 def _send_admin_order_sms(order, site_settings):

@@ -307,18 +307,21 @@ class AdminOrderSmsTests(TestCase):
         return SMSLog.objects.filter(template_key="admin_new_order")
 
     def test_text_format(self):
+        order = self.order()
         expected = "\n".join(
             [
+                f"شماره سفارش: {order.number}",
+                "سفارشات:",
                 "پوکه پرستون 16",
                 "آریزونا 3",
                 "شمزین 2 (هدیه)",
-                ADDRESS["recipient_name"],
-                ADDRESS["recipient_mobile"],
-                ADDRESS["postal_code"],
-                f"{ADDRESS['province']}، {ADDRESS['city']}، {ADDRESS['address']}",
+                f"نام گیرنده: {ADDRESS['recipient_name']}",
+                f"شماره موبایل: {ADDRESS['recipient_mobile']}",
+                f"آدرس: {ADDRESS['province']}، {ADDRESS['city']}، {ADDRESS['address']}",
+                f"کدپستی: {ADDRESS['postal_code']}",
             ]
         )
-        self.assertEqual(services.build_admin_order_text(self.order()), expected)
+        self.assertEqual(services.build_admin_order_text(order), expected)
 
     def test_sent_once_when_paid(self):
         order = self.order()
