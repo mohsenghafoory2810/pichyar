@@ -5,8 +5,14 @@ from orders.models import PaymentMethod
 from .storage import private_storage
 
 
+RECEIPT_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+
+
 def receipt_path(instance, filename):
+    # The stored name never carries a client-chosen extension other than an image one.
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    if ext not in RECEIPT_EXTENSIONS:
+        ext = "jpg"
     return f"receipts/{instance.order.number}-{instance.order.payments.count() + 1}.{ext}"
 
 

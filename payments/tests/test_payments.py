@@ -319,7 +319,7 @@ class CardToCardTests(TestCase):
         self.assertEqual(self.client.get(reverse("payments:receipt", args=[payment.pk])).status_code, 302)
         from django.contrib.auth import get_user_model
 
-        self.client.force_login(get_user_model().objects.create_user("09120000001", password="x", is_staff=True))
+        self.client.force_login(get_user_model().objects.create_superuser("09120000001", password="x"))
         self.assertEqual(self.client.get(reverse("payments:receipt", args=[payment.pk])).status_code, 200)
 
     def test_receipt_is_required(self):

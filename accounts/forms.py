@@ -32,7 +32,7 @@ class CodeForm(forms.Form):
     def clean_code(self):
         code = latin_digits(self.cleaned_data["code"]).strip()
         if not (code.isdigit() and len(code) == CODE_LENGTH):
-            raise forms.ValidationError("کد ۵ رقمی پیامک‌شده را وارد کنید.")
+            raise forms.ValidationError("کد ۶ رقمی پیامک‌شده را وارد کنید.")
         return code
 
 

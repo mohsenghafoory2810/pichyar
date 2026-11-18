@@ -1,6 +1,8 @@
 from axes.models import AccessAttempt
 from django.contrib import admin, messages
+from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import Group
 from django.db.models import Count, IntegerField, OuterRef, Q, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
 from django.template.loader import render_to_string
@@ -40,6 +42,29 @@ class UserAdmin(PersianDigitsSearchMixin, ModelAdminJalaliMixin, BaseUserAdmin):
     add_fieldsets = (
         (None, {"classes": ("wide",), "fields": ("mobile", "name", "usable_password", "password1", "password2")}),
     )
+
+    # Only a superuser hands out access. A staff member who was merely given «تغییر کاربر»
+    # could otherwise tick «ابرکاربر» on their own account, or set a new password for a manager.
+    PRIVILEGE_FIELDS = ("is_staff", "is_superuser", "groups", "user_permissions")
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        if not request.user.is_superuser:
+            fields += [f for f in self.PRIVILEGE_FIELDS if f not in fields]
+        return fields
+
+    def _is_protected(self, request, obj):
+        return obj is not None and (obj.is_staff or obj.is_superuser) and not request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        if self._is_protected(request, obj):
+            return False  # also closes the «تغییر رمز» page of that account
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if self._is_protected(request, obj):
+            return False
+        return super().has_delete_permission(request, obj)
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(
@@ -112,6 +137,30 @@ class CustomerAdmin(PersianDigitsSearchMixin, ModelAdminJalaliMixin, admin.Model
 
 # --- security: two-step login devices and login lockouts ------------------------------
 
+admin.site.unregister(Group)
+
+
+@admin.register(Group)
+class GroupAdmin(BaseGroupAdmin):
+    """Groups carry permissions, so only a superuser manages them (a staff member with
+    «تغییر گروه» could otherwise give their own group every permission)."""
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
 admin.site.unregister(TOTPDevice)
 
 
@@ -129,6 +178,10 @@ class TOTPDeviceAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False  # each admin turns it on for themselves («ورود دومرحله‌ای» in the top bar)
+
+    def has_delete_permission(self, request, obj=None):
+        # Deleting a row turns two-step login off for that account: a superuser's decision.
+        return request.user.is_superuser and super().has_delete_permission(request, obj)
 
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, {"title": "ورود دومرحله‌ای مدیران", **(extra_context or {})})

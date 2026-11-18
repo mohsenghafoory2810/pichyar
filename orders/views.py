@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7,6 +8,7 @@ from django.views.decorators.http import require_POST
 from accounts.flows import otp_step
 from accounts.models import Address, OTPCode
 from cart.cart import Cart
+from core import ratelimit
 from core.utils import get_site_settings, htmx_redirect, is_htmx
 from payments.services import PaymentError, start_online_payment
 
@@ -17,6 +19,7 @@ from .models import DiscountError, Order, PaymentMethod, find_usable_code
 from .services import CHECKOUT_MOBILE_KEY, CheckoutError, can_view, create_order, remember_order, verified_mobile
 
 CHECKOUT_PENDING_KEY = "checkout_pending_mobile"  # waiting for its SMS code
+RATE_WINDOW = 10 * 60  # seconds, for core.ratelimit
 
 
 def available_methods(site_settings):
@@ -157,6 +160,9 @@ def discount(request):
     else:
         subtotal = sum(line.line_total for line in cart.lines())
         try:
+            # Throttled per IP so codes can't be found by trying them one after another.
+            if ratelimit.hit(request, "discount", settings.DISCOUNT_MAX_TRIES_PER_IP, RATE_WINDOW):
+                raise DiscountError(ratelimit.TOO_MANY_MESSAGE)
             code = find_usable_code(
                 request.POST.get("code", ""), subtotal, user=request.user, mobile=verified_mobile(request)
             )
@@ -200,8 +206,9 @@ def checkout_mobile(request):
         request.session[CHECKOUT_MOBILE_KEY] = verified
     if is_htmx(request):
         return render(request, "orders/_checkout_mobile.html", {"mobile_box": _mobile_context(request, otp_context)})
-    if otp_context["error"]:
-        messages.error(request, otp_context["error"])
+    for message in (otp_context["error"], otp_context["captcha_error"]):
+        if message:
+            messages.error(request, message)
     return redirect("orders:checkout")
 
 
@@ -229,14 +236,19 @@ def track(request):
     form = TrackForm(request.POST or None)
     order = None
     not_found = False
+    limited = ""
     if request.method == "POST" and form.is_valid():
-        order = (
-            Order.objects.prefetch_related("items")
-            .filter(number=form.cleaned_data["number"], mobile=form.cleaned_data["mobile"])
-            .first()
-        )
-        not_found = order is None
-    context = {"form": form, "order": order, "not_found": not_found, "tracking": True}
+        # Throttled per IP: the pair (mobile, order number) must not be guessable by trying numbers.
+        if ratelimit.hit(request, "track", settings.TRACK_MAX_PER_IP, RATE_WINDOW):
+            limited = ratelimit.TOO_MANY_MESSAGE
+        else:
+            order = (
+                Order.objects.prefetch_related("items")
+                .filter(number=form.cleaned_data["number"], mobile=form.cleaned_data["mobile"])
+                .first()
+            )
+            not_found = order is None
+    context = {"form": form, "order": order, "not_found": not_found, "limited": limited, "tracking": True}
     if is_htmx(request):
         return render(request, "orders/_track_result.html", context)
     return render(request, "orders/track.html", context)

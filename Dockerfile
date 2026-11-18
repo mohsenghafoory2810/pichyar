@@ -2,7 +2,7 @@
 
 # ---- Stage 1: compile Tailwind CSS with the standalone CLI (no Node) ----
 FROM python:3.12-slim-bookworm AS css
-ARG TAILWIND_VERSION=v4.1.11
+ARG TAILWIND_VERSION=v4.3.5
 ARG TARGETARCH
 RUN case "$TARGETARCH" in arm64) arch=arm64 ;; *) arch=x64 ;; esac \
  && python -c "import urllib.request,sys; urllib.request.urlretrieve(sys.argv[1], '/usr/local/bin/tailwindcss')" \

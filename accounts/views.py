@@ -5,12 +5,14 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_POST
 
+from core import captcha, ratelimit
 from core.utils import client_ip, get_site_settings, htmx_redirect, is_htmx, safe_next_url
 from orders.models import Order
 
@@ -81,6 +83,18 @@ def _render_login(request, method, password_enabled, next_url, context):
         template = "accounts/_password_box.html" if method == "password" else "accounts/_otp_box.html"
         return render(request, template, context)
     return render(request, "accounts/login.html", context)
+
+
+@never_cache
+@require_GET
+def captcha_image(request):
+    """The picture code of the OTP box (core.captcha). Every request starts a new code for
+    this session, so reloading the picture is how a visitor gets another one."""
+    if ratelimit.hit(request, "captcha", limit=settings.CAPTCHA_IMAGES_PER_IP, window=10 * 60):
+        return HttpResponse(status=429)
+    response = HttpResponse(captcha.image(captcha.new_challenge(request)), content_type="image/png")
+    response["X-Robots-Tag"] = "noindex"
+    return response
 
 
 def recent_sms_login(request):

@@ -1,9 +1,13 @@
-from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import admin, messages
+from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import PermissionDenied
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
+
+from PIL import Image, UnidentifiedImageError
 
 from orders.models import Order
 from orders.services import can_view
@@ -73,9 +77,31 @@ def card_to_card(request, number):
     )
 
 
-@staff_member_required
+RECEIPT_CONTENT_TYPES = {"JPEG": "image/jpeg", "PNG": "image/png", "WEBP": "image/webp"}
+
+
+@never_cache
 def receipt(request, payment_id):
+    """A card-to-card receipt image, for staff who may see orders. The session must be a real
+    admin session (admin login, with the 2FA code when it is on): the same rule as the admin
+    pages, so a storefront (SMS-code) session of a staff member opens nothing here."""
+    if not admin.site.has_permission(request):
+        return redirect_to_login(request.get_full_path(), reverse("admin:login"))
+    if not request.user.has_perm("orders.view_order"):
+        raise PermissionDenied
     payment = get_object_or_404(Payment, pk=payment_id)
     if not payment.receipt:
         raise Http404
-    return FileResponse(payment.receipt.open("rb"))
+    try:
+        with payment.receipt.open("rb") as fh, Image.open(fh) as img:
+            content_type = RECEIPT_CONTENT_TYPES.get(img.format)
+    except (OSError, UnidentifiedImageError, ValueError):
+        content_type = None
+    if content_type is None:  # not an image we accept: never sent to the browser
+        raise Http404
+    # The type comes from the file's real format, never from its name, and the browser may not guess.
+    response = FileResponse(payment.receipt.open("rb"), content_type=content_type)
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Content-Security-Policy"] = "default-src 'none'; sandbox"
+    response["Content-Disposition"] = "inline"
+    return response

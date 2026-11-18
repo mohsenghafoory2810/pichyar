@@ -2,12 +2,29 @@
 
 State lives in the session (the number waiting for its code), so the steps work
 both with HTMX partial swaps and as plain form posts without JavaScript.
+
+While sending looks like SMS bombing (otp.captcha_required) a picture code
+(core.captcha) has to be solved before a code is sent or sent again.
 """
 
+from core import captcha
 from core.utils import client_ip
 
 from . import otp
 from .forms import CodeForm, MobileForm
+
+
+CAPTCHA_WANTED_KEY = "captcha_wanted"
+
+
+def _captcha_error(request, mobile):
+    """"" when no picture code is needed or the posted one is right; otherwise the message."""
+    if not otp.captcha_required(mobile, client_ip(request)):
+        return ""
+    posted = (request.POST.get("captcha") or "").strip()
+    if captcha.check(request, posted):
+        return ""
+    return captcha.WRONG_MESSAGE if posted else captcha.REQUIRED_MESSAGE
 
 
 def otp_step(request, purpose, pending_key):
@@ -16,7 +33,7 @@ def otp_step(request, purpose, pending_key):
     session = request.session
     pending = session.get(pending_key)
     mobile_form, code_form = MobileForm(), CodeForm()
-    notice = error = ""
+    notice = error = captcha_error = ""
     verified = None
 
     if request.method == "POST":
@@ -25,20 +42,24 @@ def otp_step(request, purpose, pending_key):
             mobile_form = MobileForm(request.POST)
             if mobile_form.is_valid():
                 mobile = mobile_form.cleaned_data["mobile"]
-                try:
-                    otp.send_code(mobile, purpose, client_ip(request), request.get_host())
-                    pending, notice = mobile, "کد تأیید پیامک شد."
-                except otp.OTPError as e:
-                    if e.code == "cooldown":  # a code was just sent to this number: go on with it
-                        pending, notice = mobile, e.message
-                    else:
-                        mobile_form.add_error("mobile", e.message)
+                captcha_error = _captcha_error(request, mobile)
+                if not captcha_error:
+                    try:
+                        otp.send_code(mobile, purpose, client_ip(request), request.get_host())
+                        pending, notice = mobile, "کد تأیید پیامک شد."
+                    except otp.OTPError as e:
+                        if e.code == "cooldown":  # a code was just sent to this number: go on with it
+                            pending, notice = mobile, e.message
+                        else:
+                            mobile_form.add_error("mobile", e.message)
         elif action == "resend" and pending:
-            try:
-                otp.send_code(pending, purpose, client_ip(request), request.get_host())
-                notice = "کد جدید پیامک شد."
-            except otp.OTPError as e:
-                error = e.message
+            captcha_error = _captcha_error(request, pending)
+            if not captcha_error:
+                try:
+                    otp.send_code(pending, purpose, client_ip(request), request.get_host())
+                    notice = "کد جدید پیامک شد."
+                except otp.OTPError as e:
+                    error = e.message
         elif action == "change":
             pending = None
         elif action == "verify":
@@ -57,6 +78,11 @@ def otp_step(request, purpose, pending_key):
         session[pending_key] = pending
     else:
         session.pop(pending_key, None)
+    # Remembered for the page that is shown after a redirect (forms posted without JavaScript).
+    if captcha_error:
+        session[CAPTCHA_WANTED_KEY] = True
+    elif notice:
+        session.pop(CAPTCHA_WANTED_KEY, None)
 
     return verified, {
         "step": "code" if pending else "mobile",
@@ -66,4 +92,7 @@ def otp_step(request, purpose, pending_key):
         "notice": notice,
         "error": error,
         "resend_wait": otp.seconds_until_resend(pending) if pending else 0,
+        # Show the picture code when the next send (or resend) will need it.
+        "captcha": bool(session.get(CAPTCHA_WANTED_KEY)) or otp.captcha_required(pending, client_ip(request)),
+        "captcha_error": captcha_error,
     }

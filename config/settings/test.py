@@ -19,7 +19,10 @@ DATABASES = {
 }
 MEDIA_ROOT = DATA_DIR / "media-test"
 PRIVATE_MEDIA_ROOT = DATA_DIR / "private-test"
-PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+RATE_LIMITS_ENABLED = False  # the throttle's own tests turn it on
+OTP_CAPTCHA_ENABLED = False  # so are the picture-code tests (accounts.tests.test_captcha)
+PASSWORD_HASHERS =["django.contrib.auth.hashers.MD5PasswordHasher"]
 STATIC_ROOT = DATA_DIR / "staticfiles-test"
 STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 

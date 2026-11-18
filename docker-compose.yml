@@ -38,7 +38,7 @@ services:
       start_period: 120s
 
   caddy:
-    image: caddy:2.8.4-alpine
+    image: caddy:2.11.9-alpine
     restart: unless-stopped
     ports:
       - "80:80"
@@ -66,7 +66,7 @@ services:
   # It only accepts mail for @DOMAIN and never sends or relays. The web page is bound to the
   # server's localhost, so it is reached only through an SSH tunnel (see README).
   mail:
-    image: axllent/mailpit:v1.20.0
+    image: axllent/mailpit:v1.34.0
     profiles: ["mail"]
     restart: unless-stopped
     ports:

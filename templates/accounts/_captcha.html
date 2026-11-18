@@ -1,0 +1,11 @@
+{# Picture code before an SMS code while sending looks like an attack (core.captcha). Context: box_id, captcha_error, captcha_label. #}
+<div class="space-y-1" data-captcha>
+  <label for="{{ box_id }}-captcha" class="block text-sm font-medium">{{ captcha_label|default:"عددهای داخل تصویر" }}</label>
+  <div class="flex items-center gap-3">
+    <img src="{% url 'accounts:captcha' %}" alt="تصویر کد امنیتی" width="170" height="60" class="shrink-0 rounded-xl border border-line" data-captcha-image>
+    <input type="text" name="captcha" id="{{ box_id }}-captcha" inputmode="numeric" autocomplete="off" maxlength="8" dir="ltr"
+           class="input text-center tracking-[0.3em]"{% if captcha_error %} aria-invalid="true"{% endif %}>
+  </div>
+  <button type="button" class="link text-xs" data-captcha-refresh hidden>تصویر خوانا نیست؛ یک تصویر دیگر</button>
+  {% if captcha_error %}<p class="text-sm text-error" role="alert">{{ captcha_error }}</p>{% endif %}
+</div>

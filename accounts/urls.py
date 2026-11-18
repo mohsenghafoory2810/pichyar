@@ -6,6 +6,7 @@ app_name = "accounts"
 
 urlpatterns = [
     path("login/", views.login_view, name="login"),
+    path("captcha.png", views.captcha_image, name="captcha"),
     path("logout/", views.logout_view, name="logout"),
     path("", views.order_list, name="orders"),
     path("orders/<str:number>/", views.order_detail, name="order_detail"),

@@ -7,7 +7,8 @@ from core import views as core_views
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
-    path("tinymce/", include("tinymce.urls")),
+    # django-tinymce's own URLs (compressor, file browser, flatpages list) are not mounted:
+    # the editor only needs its static files, and those views are public.
     path("health", core_views.health, name="health"),
     path("favicon.ico", core_views.favicon, name="favicon"),
     path("accounts/", include("accounts.urls")),

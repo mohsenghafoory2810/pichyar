@@ -9,11 +9,13 @@
     <svg aria-hidden="true" class="mx-auto h-14 w-14 text-success" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m7 12 3.5 3.5L17 9"/></svg>
     <h1 id="result-title" class="text-2xl font-extrabold text-success">پرداخت موفق</h1>
     {% if payment.message %}<p class="alert-error">{{ payment.message }}</p>{% else %}<p>سفارش شما ثبت شد و به‌زودی آماده و ارسال می‌شود.</p>{% endif %}
+    {% if can_view_order %}{# order number, bank reference and amount are only for the order's owner #}
     <dl class="space-y-2 text-sm">
       <div class="flex justify-between"><dt class="text-ink-soft">شمارهٔ سفارش</dt><dd dir="ltr" class="font-bold">{{ order.number|fa_digits }}</dd></div>
       <div class="flex justify-between"><dt class="text-ink-soft">کد پیگیری بانکی</dt><dd dir="ltr" class="font-bold">{{ payment.ref_id|fa_digits }}</dd></div>
       <div class="flex justify-between"><dt class="text-ink-soft">مبلغ</dt><dd>{{ payment.amount|toman }}</dd></div>
     </dl>
+    {% endif %}
   {% elif payment.status == "verifying" %}
     <h1 id="result-title" class="text-2xl font-extrabold">در حال بررسی پرداخت…</h1>
     <p>لطفاً چند لحظه صبر کنید. این صفحه خودکار تازه می‌شود.</p>

@@ -26,7 +26,7 @@
     });
   }
 
-  /* SMS code inputs: <input autocomplete="one-time-code" data-otp-length="5"> in a form with the
+  /* SMS code inputs: <input autocomplete="one-time-code" data-otp-length="6"> in a form with the
      "verify" button. Android Chrome reads the code from the SMS itself (Web OTP API; the SMS ends
      with "@domain #code"); iPhone Safari offers it above the keyboard (one tap). As soon as the
      whole code is in the box (filled, typed or pasted) the form is submitted. */
@@ -41,7 +41,7 @@
     root.querySelectorAll("input[data-otp-length]").forEach(function (input) {
       if (input._otp) return;
       input._otp = true;
-      var length = Number(input.dataset.otpLength) || 5;
+      var length = Number(input.dataset.otpLength) || 6;
       var form = input.form;
       var verify = form && form.querySelector('button[name="action"][value="verify"]');
       if (!verify) return;
@@ -115,14 +115,34 @@
     });
   }
 
+  /* Picture code (accounts/_captcha.html): the "another picture" button loads a new one
+     (every load of the picture is a new code on the server). */
+  function initCaptchas(root) {
+    root.querySelectorAll("[data-captcha]").forEach(function (box) {
+      var button = box.querySelector("[data-captcha-refresh]");
+      var image = box.querySelector("[data-captcha-image]");
+      var input = box.querySelector("input");
+      if (!button || !image || button._captcha) return;
+      button._captcha = true;
+      button.hidden = false;
+      var base = image.getAttribute("src").split("?")[0];
+      button.addEventListener("click", function () {
+        image.src = base + "?t=" + Date.now();
+        if (input) { input.value = ""; input.focus(); }
+      });
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     initAgeGate();
     initSupportButton();
     initCountdowns(document);
     initOtpInputs(document);
+    initCaptchas(document);
   });
   document.addEventListener("htmx:load", function (e) {
     initCountdowns(e.detail.elt);
     initOtpInputs(e.detail.elt);
+    initCaptchas(e.detail.elt);
   });
 })();

@@ -8,10 +8,11 @@
     {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
     {% if step == "code" %}
       <p class="text-sm leading-7">
-        کد ۵ رقمی به شمارهٔ <bdi dir="ltr" class="font-bold">{{ pending_mobile|fa_digits }}</bdi> پیامک شد. این کد ۲ دقیقه اعتبار دارد.
+        کد ۶ رقمی به شمارهٔ <bdi dir="ltr" class="font-bold">{{ pending_mobile|fa_digits }}</bdi> پیامک شد. این کد ۲ دقیقه اعتبار دارد.
       </p>
       {% include "partials/form_field.html" with field=code_form.code %}
       <button type="submit" name="action" value="verify" class="btn-cta w-full">تأیید کد</button>
+      {% if captcha %}{% include "accounts/_captcha.html" with captcha_label="برای ارسال دوبارهٔ کد، عددهای داخل تصویر را وارد کنید" %}{% endif %}
       <div class="flex items-center justify-between gap-3 text-sm">
         <button type="submit" name="action" value="change" formnovalidate class="link">تغییر شماره</button>
         <button type="submit" name="action" value="resend" formnovalidate data-countdown="{{ resend_wait }}"
@@ -21,6 +22,7 @@
       </div>
     {% else %}
       {% include "partials/form_field.html" with field=mobile_form.mobile %}
+      {% if captcha %}{% include "accounts/_captcha.html" %}{% endif %}
       <button type="submit" name="action" value="send" class="btn-cta w-full">دریافت کد تأیید</button>
     {% endif %}
   </form>

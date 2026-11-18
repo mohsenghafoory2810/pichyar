@@ -51,7 +51,7 @@ class OTPServiceTests(TestCase):
 
     def test_send_and_verify(self):
         code = self.send()
-        self.assertRegex(code, r"^\d{5}$")
+        self.assertRegex(code, r"^\d{6}$")
         otp.verify_code(MOBILE, LOGIN, code)
         self.assertIsNotNone(OTPCode.objects.get().consumed_at)
 
@@ -87,7 +87,7 @@ class OTPServiceTests(TestCase):
 
     def test_five_wrong_attempts_lock_the_code(self):
         code = self.send()
-        wrong = "00000" if code != "00000" else "11111"
+        wrong = "000000" if code != "000000" else "111111"
         for left in (4, 3, 2, 1):
             with self.assertRaises(otp.OTPError) as ctx:
                 otp.verify_code(MOBILE, LOGIN, wrong)
@@ -187,7 +187,7 @@ class LoginViewTests(TestCase):
             data["next"] = next_url
         with capture_sms() as sent:
             response = self.client.post(self.url, data, **headers)
-        self.assertContains(response, "کد ۵ رقمی")
+        self.assertContains(response, "کد ۶ رقمی")
         code = sent[0][2]["code"]
         verify = {"action": "verify", "code": code, **({"next": next_url} if next_url else {})}
         return self.client.post(self.url, verify, **headers)
@@ -225,7 +225,7 @@ class LoginViewTests(TestCase):
         with capture_sms():
             self.client.post(self.url, {"action": "send", "mobile": MOBILE})
         response = self.client.post(self.url, {"action": "verify", "code": "abcde"})
-        self.assertContains(response, "کد ۵ رقمی پیامک‌شده را وارد کنید")
+        self.assertContains(response, "کد ۶ رقمی پیامک‌شده را وارد کنید")
         self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_invalid_mobile(self):
@@ -248,7 +248,7 @@ class LoginViewTests(TestCase):
         code = sent[0][2]["code"]
         self.assertEqual(sent[0][2]["_footer"], f"@pichyar.ir #{code}")
         self.assertContains(response, 'autocomplete="one-time-code"')
-        self.assertContains(response, 'data-otp-length="5"')
+        self.assertContains(response, 'data-otp-length="6"')
 
     def test_change_number_goes_back(self):
         with capture_sms():

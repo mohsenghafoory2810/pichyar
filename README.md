@@ -500,7 +500,9 @@ docker compose exec app python manage.py seed_products
 
 **پیامک‌ها:** هنگام ثبت سفارش، تأیید پرداخت و ارسال (همراه کد رهگیری پست) برای مشتری پیامک فرستاده می‌شود، و با تأیید پرداخت یک پیامک هم برای مدیر ([بخش ۱۳](#۱۳-کد-تخفیف-هدیه-و-پیامک)).
 
-**محدودیت کد ورود:** هر کد ۵ رقمی ۲ دقیقه اعتبار دارد و ۵ بار اشتباه وارد کردن آن را باطل می‌کند. بین دو درخواست کد برای یک شماره دست‌کم ۶۰ ثانیه فاصله لازم است. در هر ساعت برای هر شماره حداکثر ۵ کد و از هر آی‌پی حداکثر ۱۵ کد فرستاده می‌شود (قابل تغییر در `.env`: `OTP_MAX_PER_MOBILE_PER_HOUR` و `OTP_MAX_PER_IP_PER_HOUR`).
+**محدودیت کد ورود:** هر کد ۶ رقمی ۲ دقیقه اعتبار دارد و ۵ بار اشتباه وارد کردن آن را باطل می‌کند. بین دو درخواست کد برای یک شماره دست‌کم ۶۰ ثانیه فاصله لازم است. در هر ساعت برای هر شماره حداکثر ۵ کد و از هر آی‌پی حداکثر ۱۵ کد فرستاده می‌شود (قابل تغییر در `.env`: `OTP_MAX_PER_MOBILE_PER_HOUR` و `OTP_MAX_PER_IP_PER_HOUR`).
+
+**کد تصویری (کپچا):** مشتری عادی آن را نمی‌بیند. فقط وقتی درخواست کد شبیه «بمباران پیامکی» باشد، پیش از فرستادن پیامک باید عددهای یک تصویر وارد شود: وقتی از یک آی‌پی در یک ساعت ۳ کد یا برای یک شماره ۲ کد فرستاده شده باشد، یا وقتی کل سایت در ۱۰ دقیقه ۳۰ کد فرستاده باشد (در این حالت تا ۳۰ دقیقه برای همه نمایش داده می‌شود). تصویر را خود سایت می‌سازد و به سرویس بیرونی نیاز ندارد. اگر فروشگاه شلوغ است و مشتریان عادی کد تصویری می‌بینند، عدد `OTP_CAPTCHA_SITE_PER_10_MIN` را در `.env` بیشتر کنید.
 
 **ورود با رمز عبور (اختیاری):** در «تنظیمات سایت ← ۱۱. ورود مشتریان» روشن می‌شود (پیش‌فرض خاموش). با روشن بودن، صفحهٔ ورود دو زبانه دارد: «کد پیامکی» و «رمز عبور». ورود و ثبت‌نام بار اول همیشه با کد پیامکی است: مشتری فقط پس از ورود با کد، از «حساب کاربری ← رمز عبور» رمز می‌سازد، و رمزی که مدیر برای شماره‌ای که هنوز با کد تأیید نشده بگذارد کار نمی‌کند. تغییر رمز، رمز فعلی را می‌خواهد مگر تا ۱۰ دقیقه پس از ورود با کد پیامکی (راه بازیابی رمز فراموش‌شده)، و بقیهٔ نشست‌های آن حساب را می‌بندد. پیام خطا نمی‌گوید شماره حساب دارد یا نه. ۵ رمز اشتباه برای یک شماره، ورود با رمز آن شماره را ۱۵ دقیقه و ۲۰ رمز اشتباه از یک آی‌پی، ورود با رمز آن آی‌پی را یک ساعت می‌بندد؛ ورود با کد پیامکی و ورود مدیران (django-axes) از این قفل جدا هستند (`.env`: `PASSWORD_LOGIN_MAX_FAILS_PER_MOBILE`، `PASSWORD_LOGIN_LOCK_MINUTES`، `PASSWORD_LOGIN_MAX_FAILS_PER_IP_PER_HOUR`). رمز مدیران فقط از پنل مدیریت تغییر می‌کند.
 
@@ -825,7 +827,7 @@ Local development (Python ≥ 3.10 works locally; the image uses 3.12):
 ```bash
 python -m venv .venv && .venv/Scripts/activate   # Linux/mac: source .venv/bin/activate
 pip install -r requirements.txt
-tailwindcss -i assets/css/input.css -o static/css/app.css --watch   # standalone CLI v4.1.11
+tailwindcss -i assets/css/input.css -o static/css/app.css --watch   # standalone CLI v4.3.5
 python manage.py migrate && python manage.py createsuperuser
 python manage.py seed_products        # initial catalog (idempotent; --no-images skips placeholders)
 python manage.py runserver            # admin at /manage/ unless ADMIN_URL is set
@@ -923,6 +925,15 @@ Admin internals: `ShopAdminSite.get_app_list` regroups models by `core.admin_sit
 | `RECEIPT_MAX_MB` | `5` | Max size of a card-to-card receipt |
 | `OTP_MAX_PER_MOBILE_PER_HOUR` | `5` | SMS codes per mobile per hour |
 | `OTP_MAX_PER_IP_PER_HOUR` | `15` | SMS codes per IP per hour |
+| `OTP_MAX_PER_MOBILE_PER_DAY` | `20` | SMS codes per mobile per day |
+| `OTP_CAPTCHA_ENABLED` | `True` | Picture code before SMS codes while sending looks like SMS bombing |
+| `OTP_CAPTCHA_AFTER_PER_IP` | `3` | Codes per IP per hour after which the picture code is asked |
+| `OTP_CAPTCHA_AFTER_PER_MOBILE` | `2` | Codes per mobile per hour after which the picture code is asked |
+| `OTP_CAPTCHA_SITE_PER_10_MIN` | `30` | Codes sent by the whole site in 10 minutes that turn the picture code on for everyone (`0` = off) |
+| `OTP_CAPTCHA_SITE_MINUTES` | `30` | How long the site-wide picture code stays on |
+| `CAPTCHA_IMAGES_PER_IP` | `60` | Picture-code images per IP per 10 minutes |
+| `TRACK_MAX_PER_IP` | `10` | Order-tracking lookups per IP per 10 minutes |
+| `DISCOUNT_MAX_TRIES_PER_IP` | `10` | Discount-code tries per IP per 10 minutes |
 | `PASSWORD_LOGIN_MAX_FAILS_PER_MOBILE` | `5` | wrong storefront passwords that lock a mobile's password login |
 | `PASSWORD_LOGIN_LOCK_MINUTES` | `15` | how long that lock lasts |
 | `PASSWORD_LOGIN_MAX_FAILS_PER_IP_PER_HOUR` | `20` | wrong storefront passwords per IP per hour |
@@ -991,4 +1002,11 @@ SMS provider, payment gateway, card numbers, shipping and gifts are **not** envi
 - **Secrets in SiteSettings** (SMS API key, gateway merchant id) are stored in the database as before but never rendered back into the page: the field shows a mask (last 4 characters), empty keeps the value, a checkbox clears it. They are not encrypted at rest; the database file is only readable inside the container and its backups.
 - **Security headers:** Django sets HSTS, nosniff, `Referrer-Policy: same-origin`, COOP, `X-Frame-Options: DENY`; `core.middleware.SecurityHeadersMiddleware` adds a Content-Security-Policy (everything `'self'`; `'unsafe-inline'` for scripts/styles because the Django admin and TinyMCE need it; `frame-ancestors 'none'`) and a Permissions-Policy. Caddy limits request bodies to 20 MB and serves `/media/` with a sandboxing CSP. `form-action` is not restricted, because the payment start view redirects a POST to the gateway.
 - **Uploads:** logo, banners and category images now use the same validator as product images (Pillow must open them as JPEG/PNG/WebP, size ≤ `PRODUCT_IMAGE_MAX_MB`); SVG and GIF are refused.
+- **Guessing protection:** `core.ratelimit` throttles the order-tracking form and the discount-code box per IP (`TRACK_MAX_PER_IP`, `DISCOUNT_MAX_TRIES_PER_IP`, per 10 minutes). Its counters are in the Django cache, a file cache under `DATA_DIR/cache` shared by the gunicorn workers; `RATE_LIMITS_ENABLED=False` turns it off (the test settings do).
+- **SMS bombing:** besides the per-mobile and per-IP caps, `accounts.otp.captcha_required` asks for a picture code before a code is sent or re-sent once an IP or a mobile got a few codes in the last hour, or — for every visitor, kept in the cache for `OTP_CAPTCHA_SITE_MINUTES` — once the whole site sent `OTP_CAPTCHA_SITE_PER_10_MIN` codes in ten minutes. `core.captcha` draws the picture with Pillow (`/accounts/captcha.png`, a new code on every load); only an HMAC of the code is in the session, it works once and for 5 minutes. Entering the SMS code never needs it. Off in the test settings.
+- **Payment result page** (`/payments/result/<id>/`, sequential ids) shows the order number, bank reference and amount only to the order's owner (`orders.services.can_view`); anyone else sees just the status.
+- **Receipt access:** `/payments/receipt/<id>/` needs a real admin session (same rule as the admin: admin login, 2FA-verified when on) plus the `orders.view_order` permission. The image is served with the content type of its real format (never of its file name), `nosniff` and a sandboxing CSP; stored names only get an image extension.
+- **Excel export of orders:** customer-typed cells that start with `= + - @` get a leading `'` (`orders.export.safe_cell`), so they can never run as a formula.
+- **Who can hand out access:** only a superuser can change `is_staff`/`is_superuser`/groups/permissions, edit or delete staff accounts (or set their password), manage groups, or delete someone's 2FA device. A staff member with «تغییر کاربر» can only edit customers.
+- **django-tinymce URLs** are not mounted (the editor only needs static files).
 - **Production start guard:** `config/settings/prod.py` refuses to start with an empty or short (< 50 chars) `SECRET_KEY`, or with `ADMIN_URL` left as `admin/` or `panel-change-me/`.

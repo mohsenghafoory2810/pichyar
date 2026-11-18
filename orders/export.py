@@ -44,7 +44,22 @@ def _items_text(order):
     return "\n".join(lines)
 
 
+FORMULA_PREFIXES = ("=", "+", "-", "@", chr(9), chr(13))  # chr(9) tab, chr(13) carriage return
+
+
+def safe_cell(value):
+    """Customer-typed text (name, address, note, ...) must never become a spreadsheet formula:
+    a leading = + - @ gets a ' in front, which Excel shows as plain text."""
+    if isinstance(value, str) and value.startswith(FORMULA_PREFIXES):
+        return "'" + value
+    return value
+
+
 def order_row(order):
+    return [safe_cell(value) for value in _order_values(order)]
+
+
+def _order_values(order):
     fmt = "%Y/%m/%d %H:%M"
     return [
         order.number,

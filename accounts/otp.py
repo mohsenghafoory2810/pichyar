@@ -3,16 +3,19 @@
     send_code(mobile, purpose, ip)      creates a code and sends it; raises OTPError
     verify_code(mobile, purpose, code)  raises OTPError unless the code is right
 
-Rules (settings.OTP_*): 5 digits, valid for 2 minutes, 5 wrong tries per code,
+Rules (settings.OTP_*): 6 digits, valid for 2 minutes, 5 wrong tries per code,
 60 seconds between two codes for the same mobile, and at most N codes per hour
 per mobile and per IP. Codes are stored as an HMAC (keyed with SECRET_KEY), never
-in plain text. Only the newest code of a mobile+purpose is valid.
+in plain text. Only the newest code of a mobile+purpose is valid. When the sending
+looks like SMS bombing, a picture code is asked first (captcha_required; the form
+in accounts.flows checks it).
 """
 
 import secrets
 from datetime import timedelta
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
@@ -23,7 +26,7 @@ from notifications.services import send_sms
 
 from .models import OTPCode
 
-CODE_LENGTH = 5
+CODE_LENGTH = 6
 
 
 def _conf(name, default):
@@ -66,8 +69,43 @@ def seconds_until_resend(mobile, now=None):
     return max(0, int(resend_cooldown() - (now - last).total_seconds() + 0.999))
 
 
+SITE_ALARM_KEY = "otp:captcha-site"
+
+
+def captcha_required(mobile=None, ip=None):
+    """Whether a picture code (core.captcha) must be solved before the next SMS code is sent.
+    Ordinary customers never see it; it comes up when sending looks like SMS bombing:
+
+    - the whole site sent OTP_CAPTCHA_SITE_PER_10_MIN codes in ten minutes (an attack from many
+      IPs and numbers): then everyone gets it for OTP_CAPTCHA_SITE_MINUTES,
+    - this IP already got OTP_CAPTCHA_AFTER_PER_IP codes in the last hour,
+    - this mobile already got OTP_CAPTCHA_AFTER_PER_MOBILE codes in the last hour."""
+    if not _conf("OTP_CAPTCHA_ENABLED", True):
+        return False
+    try:
+        if cache.get(SITE_ALARM_KEY):
+            return True
+    except Exception:  # a broken cache: fall back to counting
+        pass
+    now = timezone.now()
+    site_limit = _conf("OTP_CAPTCHA_SITE_PER_10_MIN", 30)
+    if site_limit and OTPCode.objects.filter(created_at__gte=now - timedelta(minutes=10)).count() >= site_limit:
+        try:
+            cache.set(SITE_ALARM_KEY, 1, _conf("OTP_CAPTCHA_SITE_MINUTES", 30) * 60)
+        except Exception:
+            pass
+        return True
+    hour_ago = now - timedelta(hours=1)
+    if ip and OTPCode.objects.filter(ip=ip, created_at__gte=hour_ago).count() >= _conf("OTP_CAPTCHA_AFTER_PER_IP", 3):
+        return True
+    if mobile:
+        sent = OTPCode.objects.filter(mobile=mobile, created_at__gte=hour_ago).count()
+        return sent >= _conf("OTP_CAPTCHA_AFTER_PER_MOBILE", 2)
+    return False
+
+
 def origin_line(host, code):
-    """The origin-bound last line ("@pichyar.ir #12345") that lets the browser read the code from
+    """The origin-bound last line ("@pichyar.ir #123456") that lets the browser read the code from
     the SMS: Chrome on Android (Web OTP API) fills it in by itself, Safari on iPhone offers it above
     the keyboard. `host` is the site's host as the user opened it (port removed); empty → no line."""
     host = (host or "").split(":")[0].strip().lower()
@@ -88,6 +126,9 @@ def send_code(mobile, purpose, ip=None, host=None):
         hour_ago = now - timedelta(hours=1)
         if OTPCode.objects.filter(mobile=mobile, created_at__gte=hour_ago).count() >= _conf("OTP_MAX_PER_MOBILE_PER_HOUR", 5):
             raise OTPError("برای این شماره کد زیادی درخواست شده است. لطفاً یک ساعت دیگر دوباره تلاش کنید.", "rate_mobile")
+        day_ago = now - timedelta(days=1)
+        if OTPCode.objects.filter(mobile=mobile, created_at__gte=day_ago).count() >= _conf("OTP_MAX_PER_MOBILE_PER_DAY", 20):
+            raise OTPError("برای این شماره امروز کد زیادی درخواست شده است. لطفاً فردا دوباره تلاش کنید.", "rate_mobile")
         if ip and OTPCode.objects.filter(ip=ip, created_at__gte=hour_ago).count() >= _conf("OTP_MAX_PER_IP_PER_HOUR", 15):
             raise OTPError("تعداد درخواست‌ها زیاد است. لطفاً کمی بعد دوباره تلاش کنید.", "rate_ip")
         OTPCode.objects.filter(mobile=mobile, purpose=purpose, consumed_at__isnull=True).update(consumed_at=now)

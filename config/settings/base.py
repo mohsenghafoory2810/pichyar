@@ -163,12 +163,40 @@ RECEIPT_MAX_MB = env.int("RECEIPT_MAX_MB", default=5)
 # Behind Caddy the visitor IP comes from X-Forwarded-For (turned on in prod.py).
 USE_X_FORWARDED_FOR = env.bool("USE_X_FORWARDED_FOR", default=False)
 
+# --- Cache and request throttling (core.ratelimit) ----------------------------
+# A file cache, so the counters are shared by every gunicorn worker (the default
+# in-memory cache is per process). Only core.ratelimit uses it.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": str(DATA_DIR / "cache"),
+        "TIMEOUT": 600,
+        "OPTIONS": {"MAX_ENTRIES": 20000},
+    }
+}
+RATE_LIMITS_ENABLED = env.bool("RATE_LIMITS_ENABLED", default=True)
+# Order tracking (mobile + order number) and discount codes: tries per IP per 10 minutes.
+TRACK_MAX_PER_IP = env.int("TRACK_MAX_PER_IP", default=10)
+DISCOUNT_MAX_TRIES_PER_IP = env.int("DISCOUNT_MAX_TRIES_PER_IP", default=10)
+
 # --- SMS codes (accounts.otp) and payments ------------------------------------
 OTP_TTL_SECONDS = 120
 OTP_MAX_ATTEMPTS = 5
 OTP_RESEND_COOLDOWN = 60
 OTP_MAX_PER_MOBILE_PER_HOUR = env.int("OTP_MAX_PER_MOBILE_PER_HOUR", default=5)
+# Per day too: caps how many guesses (codes × tries) and how many SMS one number can get.
+OTP_MAX_PER_MOBILE_PER_DAY = env.int("OTP_MAX_PER_MOBILE_PER_DAY", default=20)
 OTP_MAX_PER_IP_PER_HOUR = env.int("OTP_MAX_PER_IP_PER_HOUR", default=15)
+# Picture code (core.captcha) before an SMS code, only while sending looks like SMS bombing
+# (accounts.otp.captcha_required): after this many codes in the last hour for one IP / one
+# mobile, or — for every visitor, for OTP_CAPTCHA_SITE_MINUTES — once the whole site sent
+# OTP_CAPTCHA_SITE_PER_10_MIN codes in ten minutes (0 turns the site-wide rule off).
+OTP_CAPTCHA_ENABLED = env.bool("OTP_CAPTCHA_ENABLED", default=True)
+OTP_CAPTCHA_AFTER_PER_IP = env.int("OTP_CAPTCHA_AFTER_PER_IP", default=3)
+OTP_CAPTCHA_AFTER_PER_MOBILE = env.int("OTP_CAPTCHA_AFTER_PER_MOBILE", default=2)
+OTP_CAPTCHA_SITE_PER_10_MIN = env.int("OTP_CAPTCHA_SITE_PER_10_MIN", default=30)
+OTP_CAPTCHA_SITE_MINUTES = env.int("OTP_CAPTCHA_SITE_MINUTES", default=30)
+CAPTCHA_IMAGES_PER_IP = env.int("CAPTCHA_IMAGES_PER_IP", default=60)  # pictures per IP per 10 minutes
 # Storefront password login (accounts.password_login): wrong passwords lock the password
 # login (never the SMS-code login) of a mobile for a window, and of an IP for an hour.
 PASSWORD_LOGIN_MAX_FAILS_PER_MOBILE = env.int("PASSWORD_LOGIN_MAX_FAILS_PER_MOBILE", default=5)
@@ -210,7 +238,6 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 IMPORT_EXPORT_USE_TRANSACTIONS = True  # the preview (dry run) is rolled back
 IMPORT_EXPORT_IMPORT_PERMISSION_CODE = "change"
 IMPORT_EXPORT_EXPORT_PERMISSION_CODE = "view"
-
 # --- Background worker (django-q2, database broker) ------------------------
 Q_CLUSTER = {
     "name": "pichyar",
