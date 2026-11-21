@@ -430,6 +430,12 @@ msgstr "قفل ورود به پنل"
 msgid "access attempts"
 msgstr "قفل‌های ورود به پنل"
 
+msgid "access attempt expiration"
+msgstr "زمان پایان قفل ورود"
+
+msgid "access attempt expirations"
+msgstr "زمان‌های پایان قفل ورود"
+
 msgid "Logout Time"
 msgstr "زمان خروج"
 
