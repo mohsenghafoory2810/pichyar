@@ -42,8 +42,8 @@ def home(request):
     site_settings = get_site_settings(request)
     banners = Banner.objects.filter(is_active=True)
     page_meta = PageMeta(
-        title=site_settings.site_name,
-        description=auto_description(site_settings.site_description),
+        title=site_settings.home_meta_title.strip() or site_settings.site_name,
+        description=auto_description(site_settings.home_meta_description, site_settings.site_description),
         canonical=absolute(request, "/"),
         noindex=has_filter_params(request),
     )

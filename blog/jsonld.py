@@ -22,7 +22,8 @@ def published_date(article):
 
 def organization(request, site_settings):
     name = getattr(site_settings, "organization_display_name", "") or site_settings.site_name
-    org = {"@type": "Organization", "name": name, "url": request.build_absolute_uri("/")}
+    home = request.build_absolute_uri("/")
+    org = {"@type": "Organization", "@id": home + "#organization", "name": name, "url": home}
     logo = getattr(site_settings, "logo", None)
     if logo:
         org["logo"] = {"@type": "ImageObject", "url": absolute(request, logo.url)}

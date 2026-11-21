@@ -96,9 +96,21 @@ def absolute(request, url):
 PAGE_PARAM = "page"
 
 
+# Campaign / click-tracking parameters: they do not change the page, so the canonical tag alone
+# handles them (a noindex here would contradict it on links shared in campaigns).
+TRACKING_PARAMS = ("gclid", "gbraid", "wbraid", "gad_source", "fbclid", "srsltid", "msclkid", "yclid")
+TRACKING_PREFIXES = ("utm_",)
+
+
+def is_tracking_param(key):
+    key = key.lower()
+    return key in TRACKING_PARAMS or key.startswith(TRACKING_PREFIXES)
+
+
 def has_filter_params(request):
-    """Any GET parameter other than ?page= (sort, search, filters, tracking, ...)."""
-    return any(key != PAGE_PARAM for key in request.GET)
+    """Any GET parameter that changes the list (sort, search, filters, unknown ones); ?page= and
+    tracking parameters do not count."""
+    return any(key != PAGE_PARAM and not is_tracking_param(key) for key in request.GET)
 
 
 def listing_canonical(request, base_url, page_number=1):

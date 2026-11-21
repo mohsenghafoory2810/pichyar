@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if site_settings.home_heading %}
+<h1 class="mb-6 text-2xl font-extrabold md:text-3xl">{{ site_settings.home_heading }}</h1>
+{% else %}
 <h1 class="sr-only">{{ site_settings.site_name }}</h1>
+{% endif %}
 
 {% if banners %}
 <section aria-label="بنرهای ویژه" class="-mx-4 md:mx-0">
@@ -31,10 +35,16 @@
     <a href="{{ section.category.get_absolute_url }}" class="text-sm font-medium text-navy hover:underline">مشاهدهٔ همه ‹</a>
   </div>
   <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-    {% for product in section.products %}{% include "catalog/_product_card.html" %}{% endfor %}
+    {% for product in section.products %}{% if forloop.parentloop.first and forloop.counter <= 4 %}{% if banners %}{% include "catalog/_product_card.html" with eager=True %}{% else %}{% include "catalog/_product_card.html" with eager=True priority=forloop.first %}{% endif %}{% else %}{% include "catalog/_product_card.html" %}{% endif %}{% endfor %}
   </div>
 </section>
 {% endfor %}
+
+{% if site_settings.home_intro %}
+<section class="card rich-text mt-10 px-6 py-8" aria-label="معرفی فروشگاه">
+  {{ site_settings.home_intro|safe }}
+</section>
+{% endif %}
 
 {% if latest_articles and latest_articles_template %}{% include latest_articles_template %}{% endif %}
 {% endblock %}

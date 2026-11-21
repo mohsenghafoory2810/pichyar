@@ -204,9 +204,7 @@ def product_detail(request, slug):
         )
     )
 
-    related = attach_ratings(
-        with_images(Product.objects.active().filter(category=product.category).exclude(pk=product.pk))[:RELATED_PRODUCTS]
-    )
+    related = attach_ratings(related_products(product))
     return render(
         request,
         "catalog/product_detail.html",
@@ -220,6 +218,18 @@ def product_detail(request, slug):
             "related_articles": related_articles(product),
         },
     )
+
+
+def related_products(product, limit=RELATED_PRODUCTS):
+    """The products that follow this one in its category (wrapping around at the end), so every
+    product of a large category is linked from some sibling, not only the first few."""
+    ids = list(Product.objects.active().filter(category=product.category).values_list("pk", flat=True))
+    if product.pk in ids:
+        index = ids.index(product.pk)
+        ids = ids[index + 1 :] + ids[:index]
+    ids = ids[:limit]
+    by_pk = {p.pk: p for p in with_images(Product.objects.filter(pk__in=ids))}
+    return [by_pk[pk] for pk in ids if pk in by_pk]
 
 
 def related_articles(product):

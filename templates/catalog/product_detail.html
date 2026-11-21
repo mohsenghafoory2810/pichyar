@@ -75,7 +75,7 @@
     {% if product.description %}
     <div class="mt-8">
       <h2 class="mb-2 text-lg font-bold">توضیحات</h2>
-      <div class="leading-8 text-ink">{{ product.description|linebreaks }}</div>
+      <div class="rich-text">{{ product.description|safe }}</div>
     </div>
     {% endif %}
 

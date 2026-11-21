@@ -95,9 +95,17 @@ class ListingCanonicalTests(SEOTestCase):
 
     def test_sort_and_search_are_noindex_with_base_canonical(self):
         base = f"http://testserver{self.tobacco.get_absolute_url()}"
-        for params in ({"sort": "price_asc"}, {"q": "x"}, {"sort": "newest", "page": 1}, {"utm_source": "a"}):
+        for params in ({"sort": "price_asc"}, {"q": "x"}, {"sort": "newest", "page": 1}, {"color": "a"}):
             response = self.html(self.tobacco.get_absolute_url(), data=params)
             self.assertEqual(robots(response), "noindex, follow", params)
+            self.assertEqual(canonical(response), base, params)
+
+    def test_tracking_params_stay_indexable_with_base_canonical(self):
+        base = f"http://testserver{self.tobacco.get_absolute_url()}"
+        for params in ({"utm_source": "a", "utm_medium": "b"}, {"gclid": "x"}, {"fbclid": "x"}):
+            response = self.html(self.tobacco.get_absolute_url(), data=params)
+            self.assertIn("index, follow", robots(response), params)
+            self.assertNotIn("noindex", robots(response), params)
             self.assertEqual(canonical(response), base, params)
 
     def test_pagination_self_canonical(self):

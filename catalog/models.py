@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.urls import reverse
 from tinymce.models import HTMLField
 
-from core.html import sanitize_html
+from core.html import rich_text, sanitize_html
 from seo.models import SEOFields
 
 from .audit import get_acting_user
@@ -94,7 +94,11 @@ class Product(SEOFields, models.Model):
     )
     slug = models.SlugField("نشانی (slug)", max_length=170, unique=True, allow_unicode=True, blank=True)
     category = models.ForeignKey(Category, verbose_name="دسته‌بندی", on_delete=models.PROTECT, related_name="products")
-    description = models.TextField("توضیحات", blank=True)
+    description = HTMLField(
+        "توضیحات",
+        blank=True,
+        help_text="متن معرفی محصول. می‌توانید تیتر، فهرست، جدول و لینک به دسته‌ها و مقاله‌ها بگذارید.",
+    )
     sku = models.CharField(
         "کد کالا (SKU)", max_length=40, blank=True, help_text="اختیاری. خالی بماند، شناسهٔ محصول استفاده می‌شود."
     )
@@ -128,6 +132,7 @@ class Product(SEOFields, models.Model):
             self.slug = unique_slug(Product, self.name, self.pk)
         if not self.short_name:
             self.short_name = self.name[:40]
+        self.description = rich_text(self.description)
         with transaction.atomic():
             old_price = None
             if self.pk:

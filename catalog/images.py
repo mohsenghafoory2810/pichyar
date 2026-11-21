@@ -91,12 +91,16 @@ def process_favicon(field_file):
     return ContentFile(out.getvalue(), name="favicon.png")
 
 
-def process_product_image(field_file):
-    """Returns a ContentFile: EXIF-rotated, at most MAX_SIDE px, WebP, metadata stripped."""
+LOGO_MAX_SIDE = 480  # shown 40 px high; enough for sharp screens and the Organization logo
+BANNER_MAX_SIDE = 1600
+
+
+def process_product_image(field_file, max_side=MAX_SIDE):
+    """Returns a ContentFile: EXIF-rotated, at most max_side px, WebP, metadata stripped."""
     field_file.seek(0)
     with Image.open(field_file) as img:
         img = ImageOps.exif_transpose(img)
-        img.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
+        img.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
         if img.mode not in ("RGB", "RGBA"):
             img = img.convert("RGBA" if "transparency" in img.info or img.mode in ("LA", "P") else "RGB")
         out = BytesIO()

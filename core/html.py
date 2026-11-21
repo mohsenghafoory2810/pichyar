@@ -1,6 +1,9 @@
 """Sanitizing rich text written in the admin (TinyMCE): pages, category intros, articles."""
 
+import re
+
 import nh3
+from django.utils.html import linebreaks
 
 ALLOWED_TAGS = {
     "p", "br", "hr", "h2", "h3", "h4", "strong", "b", "em", "i", "u", "s", "blockquote",
@@ -28,3 +31,17 @@ def sanitize_html(html):
         url_schemes={"http", "https", "mailto", "tel"},
         link_rel="noopener noreferrer",
     )
+
+
+_ANY_TAG = re.compile(r"</?[a-zA-Z][^>]*>")
+_BLOCK_TAG = re.compile(r"<(p|br|h[2-4]|ul|ol|li|table|blockquote|figure|hr)\b", re.IGNORECASE)
+
+
+def rich_text(value):
+    """Sanitized HTML from a field that may still hold plain text (older rows, imports, seed
+    commands): without block tags, line breaks become <p> / <br>; text with no tag at all is
+    escaped first."""
+    value = (value or "").strip()
+    if value and not _BLOCK_TAG.search(value):
+        value = linebreaks(value, autoescape=not _ANY_TAG.search(value))
+    return sanitize_html(value)

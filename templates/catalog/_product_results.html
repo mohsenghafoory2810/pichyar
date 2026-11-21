@@ -4,7 +4,7 @@
   {% if products %}
     <p class="mb-3 text-sm text-ink-soft" aria-live="polite">{{ page_obj.paginator.count|fa_number }} محصول</p>
     <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-      {% for product in products %}{% include "catalog/_product_card.html" %}{% endfor %}
+      {% for product in products %}{% if forloop.counter <= 4 %}{% include "catalog/_product_card.html" with eager=True priority=forloop.first %}{% else %}{% include "catalog/_product_card.html" %}{% endif %}{% endfor %}
     </div>
 
     {% if page_obj.has_other_pages %}

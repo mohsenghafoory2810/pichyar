@@ -24,7 +24,8 @@
 	# Uploaded images are served directly by Caddy.
 	handle_path /media/* {
 		root * /srv/media
-		header Cache-Control "public, max-age=604800"
+		# Uploads get a new file name when replaced, so a long lifetime is safe (30 days).
+		header Cache-Control "public, max-age=2592000"
 		header Content-Security-Policy "default-src 'none'; sandbox"
 		# The app sends HSTS itself; files served from here need it too (30 days, like SECURE_HSTS_SECONDS).
 		header Strict-Transport-Security "max-age=2592000"

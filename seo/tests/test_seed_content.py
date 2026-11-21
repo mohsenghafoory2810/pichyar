@@ -9,6 +9,7 @@ from catalog.models import Category
 from core.models import SiteSettings
 from seo.content import articles as article_content
 from seo.content import catalog as catalog_content
+from seo.meta import plain_text
 
 from .utils import SEOTestCase, jsonld_of_type, make_product
 
@@ -29,13 +30,13 @@ class SeedContentTests(SEOTestCase):
         run()
 
         chapman.refresh_from_db()
-        self.assertTrue(chapman.description.startswith(catalog_content.TOBACCO["چاپمن آلمانی"]))
+        self.assertTrue(plain_text(chapman.description).startswith(plain_text(catalog_content.TOBACCO["چاپمن آلمانی"])))
         self.assertEqual(chapman.meta_title, "خرید توتون چاپمن آلمانی | پیچ‌یار")
         machine.refresh_from_db()
         self.assertIn("زیگ‌زاگ", machine.description)
         self.assertEqual(machine.meta_title, "خرید دستگاه زیگ زاگ طلایی ترکیه ای | پیچ‌یار")
         edited.refresh_from_db()
-        self.assertEqual((edited.description, edited.meta_title), ("متن خود مدیر", "عنوان خود مدیر"))
+        self.assertEqual((edited.description, edited.meta_title), ("<p>متن خود مدیر</p>", "عنوان خود مدیر"))
         unknown.refresh_from_db()
         self.assertEqual(unknown.description, "")
 

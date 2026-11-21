@@ -6,7 +6,14 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from tinymce.models import HTMLField
 
-from catalog.images import process_favicon, validate_favicon_upload, validate_image_upload
+from catalog.images import (
+    BANNER_MAX_SIDE,
+    LOGO_MAX_SIDE,
+    process_favicon,
+    process_product_image,
+    validate_favicon_upload,
+    validate_image_upload,
+)
 from seo.models import SEOFields
 
 from .html import sanitize_html
@@ -203,6 +210,29 @@ class SiteSettings(models.Model):
         blank=True,
         help_text="یکی دو جملهٔ واقعی دربارهٔ فروشگاه. توضیح پیش‌فرض صفحه‌ها و فایل llms.txt از این ساخته می‌شود.",
     )
+    home_meta_title = models.CharField(
+        "عنوان صفحهٔ اصلی در گوگل",
+        max_length=70,
+        blank=True,
+        help_text="متنی که در نتیجهٔ جستجو و سربرگ مرورگر دیده می‌شود؛ حداکثر حدود ۶۰ نویسه. خالی = نام سایت.",
+    )
+    home_meta_description = models.CharField(
+        "توضیح صفحهٔ اصلی در گوگل",
+        max_length=200,
+        blank=True,
+        help_text="یکی دو جمله زیر عنوان در نتیجهٔ جستجو؛ حداکثر حدود ۱۵۵ نویسه. خالی = معرفی کوتاه سایت.",
+    )
+    home_heading = models.CharField(
+        "تیتر اصلی صفحهٔ اصلی",
+        max_length=120,
+        blank=True,
+        help_text="بالای صفحهٔ اصلی نمایش داده می‌شود. خالی = نام سایت (بدون نمایش).",
+    )
+    home_intro = HTMLField(
+        "متن معرفی صفحهٔ اصلی",
+        blank=True,
+        help_text="اختیاری. پایین محصولات صفحهٔ اصلی نمایش داده می‌شود؛ معرفی فروشگاه، دسته‌ها و لینک به آن‌ها.",
+    )
     organization_name = models.CharField(
         "نام رسمی کسب‌وکار", max_length=150, blank=True, help_text="برای داده‌های ساختاریافته (Organization). خالی = نام سایت."
     )
@@ -308,6 +338,9 @@ class SiteSettings(models.Model):
         self.pk = 1
         if self.favicon and not self.favicon._committed:  # a new upload: store it as a square PNG
             self.favicon = process_favicon(self.favicon)
+        if self.logo and not self.logo._committed:  # a new upload: a small WebP (it is on every page)
+            self.logo = process_product_image(self.logo, LOGO_MAX_SIDE)
+        self.home_intro = sanitize_html(self.home_intro)
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -499,6 +532,11 @@ class Banner(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if self.image and not self.image._committed:  # a new upload: resized WebP
+            self.image = process_product_image(self.image, BANNER_MAX_SIDE)
+        super().save(*args, **kwargs)
 
     def clean(self):
         if self.link and not (self.link.startswith("/") or self.link.startswith("https://")):

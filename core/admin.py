@@ -148,6 +148,10 @@ class SiteSettingsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             {
                 "fields": (
                     "site_description",
+                    "home_meta_title",
+                    "home_meta_description",
+                    "home_heading",
+                    "home_intro",
                     "organization_name",
                     "social_links",
                     "default_og_image",

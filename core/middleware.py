@@ -44,4 +44,8 @@ class SecurityHeadersMiddleware:
             response.headers.setdefault("Content-Security-Policy", self.csp)
         if self.permissions:
             response.headers.setdefault("Permissions-Policy", self.permissions)
+        # Pages differ per visitor (CSRF token, age gate, cart, login): a CDN or shared proxy must
+        # never store them. Views that set their own Cache-Control keep it.
+        if response.get("Content-Type", "").startswith("text/html"):
+            response.headers.setdefault("Cache-Control", "private, no-cache")
         return response
