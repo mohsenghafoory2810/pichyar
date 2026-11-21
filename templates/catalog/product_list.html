@@ -44,6 +44,10 @@
   {% include "catalog/_product_results.html" %}
 </div>
 
+{% if category.guide and page_obj.number == 1 and not query %}
+<section class="rich-text mt-12" aria-label="راهنمای {{ category.name }}">{{ category.guide|safe }}</section>
+{% endif %}
+
 {% if faqs %}
 <section class="mt-12" aria-labelledby="category-faq-title">
   <h2 id="category-faq-title" class="mb-4 text-xl font-extrabold">پرسش‌های متداول</h2>

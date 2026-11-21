@@ -30,6 +30,11 @@ class Category(SEOFields, models.Model):
     image = models.ImageField("تصویر", upload_to="categories/", blank=True, validators=[validate_image_upload])
     image_alt = models.CharField("متن جایگزین تصویر (alt)", max_length=150, blank=True, help_text="خالی بماند، نام دسته استفاده می‌شود.")
     intro = HTMLField("متن معرفی بالای صفحه", blank=True, help_text="اختیاری. بالای فهرست محصولات این دسته نمایش داده می‌شود.")
+    guide = HTMLField(
+        "راهنمای پایین صفحه",
+        blank=True,
+        help_text="اختیاری. متن بلندتر (راهنمای انتخاب، مقایسه، جدول) که پایین فهرست محصولات نمایش داده می‌شود.",
+    )
     order = models.PositiveIntegerField("ترتیب", default=0)
     is_active = models.BooleanField("فعال", default=True)
 
@@ -55,6 +60,7 @@ class Category(SEOFields, models.Model):
         if not self.slug:
             self.slug = unique_slug(Category, self.name, self.pk)
         self.intro = sanitize_html(self.intro)
+        self.guide = sanitize_html(self.guide)
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

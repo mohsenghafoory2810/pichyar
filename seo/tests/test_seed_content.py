@@ -76,3 +76,61 @@ class SeedContentTests(SEOTestCase):
         response = self.html(article.get_absolute_url())
         self.assertContains(response, "آماده کردن توتون")
         self.assertTrue(jsonld_of_type(response, "FAQPage"))
+
+    def test_overwrite_replaces_texts_and_is_idempotent(self):
+        machine = make_product("دستگاه خشابی", category=Category.objects.get(slug="machines"))
+        edited = make_product("دیویدوف", description="متن قدیمی", meta_title="عنوان خود مدیر")
+        self.tobacco.intro = "<p>معرفی قدیمی</p>"
+        self.tobacco.save()
+        run()
+
+        out = StringIO()
+        call_command("seed_seo_content", "--overwrite", stdout=out)
+        edited.refresh_from_db()
+        self.assertNotIn("متن قدیمی", edited.description)
+        self.assertEqual(edited.meta_title, "عنوان خود مدیر")  # SEO titles are never replaced
+        self.tobacco.refresh_from_db()
+        self.assertNotIn("معرفی قدیمی", self.tobacco.intro)
+        self.assertTrue(self.tobacco.guide)
+        self.assertEqual(self.tobacco.faqs.count(), len(catalog_content.CATEGORIES["tobacco"]["faqs"]))
+        site = SiteSettings.objects.get()
+        self.assertEqual(site.home_meta_title, catalog_content.HOME["home_meta_title"])
+        self.assertIn("<h2>", site.home_intro)
+
+        # Links to products point at real product URLs; links to products that do not exist are dropped.
+        machine.refresh_from_db()
+        self.assertNotIn('href="/p/', self.tobacco.guide.replace(f'href="{machine.get_absolute_url()}"', ""))
+        self.assertIn("پیدا نشد", out.getvalue())
+
+        out = StringIO()
+        call_command("seed_seo_content", "--overwrite", stdout=out)
+        for label in ("محصولات به‌روزشده", "دسته‌بندی‌های به‌روزشده", "پرسش‌های دسته‌بندی", "متن‌های صفحهٔ اصلی"):
+            self.assertNotIn(label, out.getvalue())
+
+    def test_publish_also_publishes_earlier_drafts(self):
+        run()
+        self.assertFalse(Article.objects.published().exists())
+        run("--publish")
+        self.assertEqual(Article.objects.published().count(), len(article_content.ARTICLES))
+
+    def test_content_limits_and_links(self):
+        import re
+
+        from seo.models import META_DESCRIPTION_MAX, META_TITLE_MAX
+
+        names = {name.replace(" ", "-") for name in [*catalog_content.TOBACCO, *catalog_content.ACCESSORIES]}
+        texts = [*catalog_content.TOBACCO.values(), *catalog_content.ACCESSORIES.values(), catalog_content.HOME["home_intro"]]
+        for slug, data in catalog_content.CATEGORIES.items():
+            self.assertLessEqual(len(data["meta_title"]), META_TITLE_MAX, slug)
+            self.assertLessEqual(len(data["meta_description"]), META_DESCRIPTION_MAX, slug)
+            texts += [data["intro"], data["guide"]]
+        for item in article_content.ARTICLES:
+            self.assertLessEqual(len(item["meta_title"]), META_TITLE_MAX, item["title"])
+            self.assertLessEqual(len(item["meta_description"]), META_DESCRIPTION_MAX, item["title"])
+            texts.append(item["body"])
+        for text in texts:
+            for href in re.findall(r'href="([^"]+)"', text):
+                if href.startswith("/p/"):
+                    self.assertIn(href[3:-1], names, href)
+                else:
+                    self.assertRegex(href, r"^/(blog/|c/[a-z]+/)$")

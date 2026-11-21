@@ -51,7 +51,7 @@ class CategoryAdmin(SEOAdminMixin, admin.ModelAdmin):
     inlines = [CategoryFAQInline]
     fieldsets = (
         (None, {"fields": ("name", "slug", "parent", "image", "image_alt", "order", "is_active")}),
-        ("متن معرفی", {"fields": ("intro",)}),
+        ("متن معرفی و راهنما", {"fields": ("intro", "guide")}),
         seo_fieldset(),
     )
 

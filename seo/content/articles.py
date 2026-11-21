@@ -271,3 +271,7 @@ ARTICLES = [
         ],
     },
 ]
+
+from .articles_more import ARTICLES as _MORE  # noqa: E402
+
+ARTICLES = ARTICLES + _MORE
